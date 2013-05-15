@@ -562,13 +562,11 @@ var Scribe = function(options) {
       }
     };
 
-    Events.onready(function() {
-      Events.onevent(document.body, 'hashchange', true, function(e) {
-        dispatch(e);
-      });
-    });
-
-    setInterval(function() { dispatch({}); }, 25);
+    if (window.onhashchange) {
+      Events.onevent(window, 'hashchange', false, dispatch);
+    } else {
+      setInterval(function() { dispatch({}); }, 25);
+    }
 
     return function(f) {
       handler.push(f);
@@ -698,13 +696,13 @@ var Scribe = function(options) {
   Events.onready(function() {
     console.log(Util.jsonify(Env.getPageloadData()));
 
-    /* Events.onengage(function(start, end) {
+    Events.onengage(function(start, end) {
       var target = start.target;
 
       var delta = end.timeStamp - start.timeStamp;
 
-      console.log('Engaged: ' + delta + ' milliseconds with ' + genCssSelector(target));
-    }); */
+      console.log('Engaged: ' + delta + ' milliseconds with ' + Util.genCssSelector(target));
+    });
 
     Events.onsubmit(function(e) {
       console.log('Form submit');
