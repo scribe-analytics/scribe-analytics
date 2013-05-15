@@ -1,23 +1,23 @@
 {
-  "author":       "John A. De Goes",
-  "name":         "scribe-analytics",
-  "version":      "0.1.1",
-  "description":  "An open source web analytics front-end capable of tracking fine-grained user behavior.",
+  "author": "John A. De Goes",
+  "name": "scribe-analytics",
+  "version": "0.1.1",
+  "description": "An open source web analytics front-end capable of tracking fine-grained user behavior.",
   "scripts": {
-    "test":       "node_modules/.bin/grunt test",
+    "test": "node_modules/.bin/grunt test",
     "prepublish": "node_modules/.bin/grunt"
   },
-  "main":         "dist/scribe-analytics",
+  "main": "dist/scribe-analytics",
   "devDependencies": {
-    "grunt":                  "~0.4.1",
-    "grunt-cli":              "~0.1.7",
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.7",
     "grunt-contrib-compress": "~0.5.0",
-    "grunt-contrib-jshint":   "~0.4.3",
+    "grunt-contrib-jshint": "~0.4.3",
     "grunt-contrib-nodeunit": "~0.1.2",
-    "grunt-contrib-uglify":   "~0.2.0",
-    "grunt-contrib-watch":    "~0.3.1",
-    "grunt-jsdoc":            "~0.3.2",
-    "grunt-rigger":           "~0.4.0",
-    "nodeunit":               "~0.8.0"
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-watch": "~0.3.1",
+    "grunt-jsdoc": "~0.3.2",
+    "grunt-rigger": "~0.4.0",
+    "nodeunit": "~0.8.0"
   }
 }

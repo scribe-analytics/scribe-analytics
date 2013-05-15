@@ -68,6 +68,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-rigger');
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
   grunt.registerTask('test', ['jshint', 'rig', 'nodeunit']);
 
