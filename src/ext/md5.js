@@ -1,5 +1,5 @@
 
-var MD5 = (typeof MD5 === 'undefined') ? {} else MD5;
+var MD5 = (typeof MD5 === 'undefined') ? {} : MD5;
 
 (function(MD5) {
   function md5cycle(x, k) {

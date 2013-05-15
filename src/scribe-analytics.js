@@ -29,9 +29,9 @@ var Scribe = function(options) {
   var BrowserDetect = {
     init: function () {
       this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-      this.version = this.searchVersion(navigator.userAgent)
-        || this.searchVersion(navigator.appVersion)
-        || "an unknown version";
+      this.version = this.searchVersion(navigator.userAgent) || 
+        this.searchVersion(navigator.appVersion) || 
+        "an unknown version";
       this.OS = this.searchString(this.dataOS) || "an unknown OS";
     },
     searchString: function (data) {
@@ -157,6 +157,12 @@ var Scribe = function(options) {
 
   var Util = {};
 
+  Util.removeElement = function(array, from, to) {
+    var tail = array.slice((to || from) + 1 || array.length);
+    array.length = from < 0 ? array.length + from : from;
+    return array.push.apply(array, tail);
+  };
+
   Util.genCssSelector = function(node) {
     var sel = '';
 
@@ -165,8 +171,8 @@ var Scribe = function(options) {
       var classes = node.className.split(" ").join(".");
       var tagName = node.nodeName.toLowerCase();
 
-      if (id && id != "") id = '#' + id;
-      if (classes != "") classes = '.' + classes;
+      if (id && id !== "") id = '#' + id;
+      if (classes !== "") classes = '.' + classes;
 
       var prefix = tagName + id + classes;
 
@@ -182,7 +188,7 @@ var Scribe = function(options) {
 
       node = parent;
 
-      if (sel != '') sel = '>' + sel;
+      if (sel !== '') sel = '>' + sel;
 
       sel = prefix + sel;
     }
@@ -205,7 +211,7 @@ var Scribe = function(options) {
       return Math.floor((1 + Math.random()) * 0x10000)
              .toString(16)
              .substring(1);
-    }
+    };
 
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
            s4() + '-' + s4() + s4() + s4();
@@ -231,18 +237,19 @@ var Scribe = function(options) {
   };
 
   Util.mapJson = function(v, f) {
+    var vp, vv;
     if (v instanceof Array) {
-      var vp = [];
+      vp = [];
       for (var i = 0; i < v.length; i++) {
-        var vv = mapJson(v[i], f);
+        vv = Util.mapJson(v[i], f);
 
         if (vv !== undefined) vp.push(vv);
       }
       return vp;
     } else if (v instanceof Object) {
-      var vp = {};
+      vp = {};
       for (var k in v) {
-        var vv = mapJson(v[k], f);
+        vv = Util.mapJson(v[k], f);
 
         if (vv !== undefined) vp[k] = vv;
       }
@@ -251,8 +258,8 @@ var Scribe = function(options) {
   };
 
   Util.jsonify = function(v) {
-    return mapJson(v, function(v) {
-      if (v == '') return undefined;
+    return Util.mapJson(v, function(v) {
+      if (v === '') return undefined;
       else {
         var r;
         try {
@@ -281,7 +288,7 @@ var Scribe = function(options) {
 
         return result;
       } return undefined;
-    }
+    };
   };
 
   Util.getFormData = function(node) {
@@ -335,7 +342,7 @@ var Scribe = function(options) {
         var name = attrs[i].name;
         var value = attrs[i].value;
 
-        if (name.indexOf('data-') == 0) {
+        if (name.indexOf('data-') === 0) {
           name = name.substr('data-'.length);
 
           dataset[name] = value;
@@ -344,7 +351,7 @@ var Scribe = function(options) {
 
       return dataset;
     } else return {};
-  }
+  };
 
   var Env = {};
   
@@ -352,7 +359,7 @@ var Scribe = function(options) {
     var fingerprint = (function() {
       var data = [
         JSON.stringify(Env.getPluginsData()),
-        JSON.stringify(localeData()),
+        JSON.stringify(Env.getLocaleData()),
         navigator.userAgent.toString()
       ];
 
@@ -402,8 +409,7 @@ var Scribe = function(options) {
     // 
     var results = new RegExp('([A-Z]+-[0-9]+) \\(([A-Z]+)\\)').exec((new Date()).toString());
 
-    var gmtOffset = undefined;
-    var timezone = undefined;
+    var gmtOffset, timezone;
 
     if (results.length >= 3) {
       gmtOffset = results[1];
@@ -457,7 +463,7 @@ var Scribe = function(options) {
     this.handlers.push(f);
   };
 
-  Handler.protoype.dispatch = function() {
+  Handler.prototype.dispatch = function() {
     var args = Array.prototype.slice.call(arguments, 0), i;
 
     for (i = 0; i < this.handlers.length; i++) {
@@ -480,7 +486,7 @@ var Scribe = function(options) {
   Events.onevent = function(el, type, capture, f_) {
     var fixup = function(f) {
       return function(e) {
-        if (!e) var e = window.event;
+        if (!e) e = window.event;
 
         e.target    = e.target || e.srcElement;
         e.timeStamp = e.timeStamp || (new Date()).getTime();
@@ -493,8 +499,9 @@ var Scribe = function(options) {
         // console.log(Util.getDataset(e.target));
 
         return f(e);
-      }
-    }
+      };
+    };
+
     var f = fixup(f_);
 
     if (el.addEventListener) {
@@ -508,34 +515,35 @@ var Scribe = function(options) {
     var handler = new Handler();
     var events = [];
 
-    Events.onevent(document.body, 'mouseover', true, function(e) {
-      events.push(e);
-    });
+    Events.onready(function() {
+      Events.onevent(document.body, 'mouseover', true, function(e) {
+        events.push(e);
+      });
 
-    // FIXME: events.pop
+      Events.onevent(document.body, 'mouseout', true, function(end) {
+        var i, start;
 
-    Events.onevent(document.body, 'mouseout', true, function(end) {
-      var idx = -1;
-
-      for (var i = events.length - 1; i >= 0; i--) {
-        if (events[i].target == end.target) {
-          idx = i;
-          break;
+        for (i = events.length - 1; i >= 0; i--) {
+          if (events[i].target == end.target) {
+            start = events[i];
+            Util.removeElement(events, i);
+            break;
+          }
         }
-      }
 
-      if (idx != -1) {
-        var start = events[idx];
-        var delta = (end.timeStamp - start.timeStamp);
+        if (start !== undefined) {
+          var delta = (end.timeStamp - start.timeStamp);
 
-        if (delta > self.options().minEngagement && delta < self.options().maxEngagement)
-          handler.dispatch(start, end);
-      }
+          if (delta >= 250 /*self.options().minEngagement*/ && 
+              delta <= 20000 /*self.options().maxEngagement*/)
+            handler.dispatch(start, end);
+        }
+      });
     });
 
     return function(f) {
       handler.push(f);
-    }
+    };
   })();
 
   Events.onhashchange = (function() {
@@ -554,15 +562,17 @@ var Scribe = function(options) {
       }
     };
 
-    Events.onevent(document.body, 'hashchange', true, function(e) {
-      dispatch(e);
+    Events.onready(function() {
+      Events.onevent(document.body, 'hashchange', true, function(e) {
+        dispatch(e);
+      });
     });
 
     setInterval(function() { dispatch({}); }, 25);
 
     return function(f) {
       handler.push(f);
-    }
+    };
   })();
 
   Events.onerror = (function() {
@@ -570,35 +580,36 @@ var Scribe = function(options) {
 
     if (typeof window.onerror === 'function') handler.push(window.onerror);
 
-    window.onerror = function(err, url, line) { handler.dispatch(err, url, line); }
+    window.onerror = function(err, url, line) { handler.dispatch(err, url, line); };
 
     return function(f) {
       handler.push(f);
-    }
+    };
   })();
 
   Events.onsubmit = (function() {
     var handler = new Handler();
-    var lastClick = undefined;
-    var lastEnter = undefined;
+    var lastClick, lastEnter;
 
     var handle = Util.undup(function(e) {
       handler.dispatch(e);
     });
 
-    Events.onevent(document.body, 'submit', true, function(e) {
-      e.form = e.target;
-      handle(e);
-    });
+    Events.onready(function() {
+      Events.onevent(document.body, 'submit', true, function(e) {
+        e.form = e.target;
+        handle(e);
+      });
 
-    Events.onevent(document.body, 'keypress', true, function(e) {
-      if (e.keyCode == 13) {
-        lastEnter = e;
-      }
-    });
+      Events.onevent(document.body, 'keypress', true, function(e) {
+        if (e.keyCode == 13) {
+          lastEnter = e;
+        }
+      });
 
-    Events.onevent(document.body, 'click', true, function(e) {
-      lastClick = e;
+      Events.onevent(document.body, 'click', true, function(e) {
+        lastClick = e;
+      });
     });
 
     var formSubmitEvent = function() {
@@ -611,31 +622,33 @@ var Scribe = function(options) {
 
     var forms = document.getElementsByTagName('form');
 
-    for (var i = 0; i < forms.length; i++) {
-      var form = forms[i];
-
+    var createSubmitter = function(form) {
       var oldSubmit = form.submit;
 
-      form.submit = function() {
+      return function() {
         var cancel = false;
         var submitEvent = formSubmitEvent();
         if (submitEvent) {
           submitEvent.preventDefault = function() {
             cancel = true;
-          }
+          };
 
         } else {
-          submitEvent = {}
+          submitEvent = {};
         }
         submitEvent.form = form;
         handle(submitEvent);
         if (!cancel) oldSubmit.apply(form);
       };
+    };
+
+    for (var i = 0; i < forms.length; i++) {
+      form.submit = createSubmitter(forms[i]);
     }
 
     return function(f) {
       handler.push(f);
-    }
+    };
   })();
 
   /**
@@ -679,7 +692,7 @@ var Scribe = function(options) {
   Scribe.prototype.pageview = function(url) {
     var self = this;
 
-    
+
   };
   
   Events.onready(function() {
