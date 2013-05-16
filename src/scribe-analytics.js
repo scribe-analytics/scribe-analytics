@@ -3,20 +3,20 @@
  * Constructs a new Scribe Analytics tracker.
  *
  * @constructor Scribe
- * @memberof scribe
  *
  * @param options.tracker   The tracker to use for tracking events.
- *                          Must support identify() and track().
+ *                          Must be: function(collection, event).
  *
  */
 var Scribe = function(options) {
   if (!(this instanceof Scribe)) return new Scribe(config);
 
-  this.options = options;
-  this.tracker = options.tracker;
+  options = options || {};
 
-  this.options.minEngagement = this.options.minEngagement || 250;
-  this.options.maxEngagement = this.options.maxEngagement || 20000;
+  this.options    = options;
+  this.tracker    = options.tracker;
+
+  this.initialize();
 };
 
 (function(Scribe) {
@@ -179,21 +179,70 @@ var Scribe = function(options) {
       var parent = node.parentNode;
       
       var index = -1;
+      var priors = [];
       for (var i = 0; i < parent.childNodes.length; i++) {
         if (parent.childNodes[i] === node) {
           index = (i + 1);
           break;
+        } else {
+          var childTagName = parent.childNodes[i].tagName;
+          if (childTagName !== undefined) {
+            var suffix = (priors.length === 0) ? ':first-child' : '';
+
+            priors.push(childTagName.toLowerCase() + suffix);
+          }
         }
       }
 
-      node = parent;
+      priors.push(prefix);
 
       if (sel !== '') sel = '>' + sel;
 
-      sel = prefix + sel;
+      sel = priors.join('+') + sel;
+
+      node = parent;
     }
 
     return sel;
+  };
+
+  Util.merge = function(o1, o2) {
+    var r, key, index;
+    if (o1 === undefined) return o1;
+    else if (o2 === undefined) return o1;
+    else if (o1 instanceof Array && o2 instanceof Array) {
+      r = [];
+      // Copy
+      for (index = 0; index < o1.length; index++) {
+        r.push(o1[index]);
+      }
+      // Merge
+      for (index = 0; index < o2.length; index++) {
+        if (r.length > index) {
+          r[index] = Util.merge(r[index], o2[index]);
+        } else {
+          r.push(o2[index]);
+        }
+      }
+      return r;
+    } else if (o1 instanceof Object && o2 instanceof Object) {
+      r = {};
+      // Copy:
+      for (key in o1) {
+        r[key] = o1[key];
+      }
+      // Merge:
+      for (key in o2) {
+        if (r[key] !== undefined) {
+          r[key] = Util.merge(r[key], o2[key]);
+        } else {
+          r[key] = o2[key];
+        }
+      }
+      return r;
+    } else {
+      return o2;
+    }
   };
 
   Util.toObject = function(olike) {
@@ -354,17 +403,19 @@ var Scribe = function(options) {
   };
 
   var Env = {};
+
+  Env.getFingerprint = function() {    
+    var data = [
+      JSON.stringify(Env.getPluginsData()),
+      JSON.stringify(Env.getLocaleData()),
+      navigator.userAgent.toString()
+    ];
+
+    return MD5.hash(data.join(""));
+  };
   
   Env.getBrowserData = function() {
-    var fingerprint = (function() {
-      var data = [
-        JSON.stringify(Env.getPluginsData()),
-        JSON.stringify(Env.getLocaleData()),
-        navigator.userAgent.toString()
-      ];
-
-      return MD5.hash(data.join(""));
-    })();
+    var fingerprint = Env.getFingerprint();
 
     return ({
       ua:           navigator.userAgent,
@@ -440,10 +491,10 @@ var Scribe = function(options) {
     for (var i = 0; i < p.length; i++) {
       var pi = p[i];
       plugins.push({
-        name: pi.name,
-        description: pi.description,
-        filename: pi.filename,
-        version: pi.version,
+        name:         pi.name,
+        description:  pi.description,
+        filename:     pi.filename,
+        version:      pi.version,
         mimeType: (pi.length > 0) ? ({
           type: pi[0].type,
           description: pi[0].description,
@@ -650,26 +701,145 @@ var Scribe = function(options) {
   })();
 
   /**
+   * Initializes Scribe. This is called internally by the constructor and does
+   * not need to be called manually.
+   */
+  Scribe.prototype.initialize = function() {
+    var self = this;
+
+    this.options = Util.merge({
+      minEngagement: 250,
+      maxEngagement: 20000,
+      bucket:       'none'
+    }, this.options);
+
+    this.data = {
+      browser:      Env.getBrowserData(),
+      document:     Env.getDocumentData(),
+      screen:       Env.getScreenData(),
+      locale:       Env.getLocaleData(),
+      fingerprint:  Env.getFingerprint()
+    };
+
+    this.visitorId = (function() {
+      var createCookie = function(name,value,days) {
+        var expires, date;
+        if (days) {
+          date = new Date();
+          date.setTime(date.getTime()+(days*24*60*60*1000));
+          expires = "; expires="+date.toGMTString();
+        }
+        else expires = "";
+        document.cookie = name+"="+value+expires+"; path=/";
+      };
+
+      var readCookie = function(name) {
+        var nameEQ = name + "=", ca, c, i;
+        ca = document.cookie.split(';');
+        for(i=0;i < ca.length;i++) {
+          c = ca[i];
+          while (c.charAt(0)==' ') c = c.substring(1,c.length);
+          if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+      };
+
+      var lid = (typeof localStorage !== 'undefined') ? localStorage.getItem('visitorId') : undefined;
+      var cid = readCookie('visitorId');
+
+      var visitorId = lid || cid || Util.genGuid();
+
+      (typeof localStorage !== 'undefined') && localStorage.setItem('visitorId', visitorId);
+      createCookie('visitorId', visitorId);
+
+      return visitorId;
+    })();
+
+    // Date shim:
+    if (!Date.prototype.toISOString ) {
+      (function() {
+        function pad(number) {
+          var r = String(number);
+          if ( r.length === 1 ) {
+            r = '0' + r;
+          }
+          return r;
+        }
+      
+        Date.prototype.toISOString = function() {
+          return this.getUTCFullYear() + 
+            '-' + pad( this.getUTCMonth() + 1 ) + 
+            '-' + pad( this.getUTCDate() ) + 
+            'T' + pad( this.getUTCHours() ) +
+            ':' + pad( this.getUTCMinutes() ) +
+            ':' + pad( this.getUTCSeconds() ) +
+            '.' + String( (this.getUTCMilliseconds()/1000).toFixed(3) ).slice( 2, 5 ) + 
+            'Z';
+        };
+      }());
+    }
+  };
+
+  /**
+   * Retrieves the path where a certain category of data is stored.
+   *
+   * @memberof Scribe
+   *
+   * @param type  A simple String describing the category of data, such as
+   *              'profile' or 'history'.
+   */
+  Scribe.prototype.getPath = function(type) {
+    var now = new Date();
+    var rootNode = this.userId ? '/users/' + this.userId + '/' : 
+                   (this.visitorId ? '/visitors/' + this.visitorId + '/' : '/visitors/anon/');
+    var dateNode;
+
+    if (/none/.test(this.options.bucket)) {
+      dateNode = '';
+    } else if (/daily|day/.test(this.options.bucket)) {
+      dateNode = now.getUTCDate() + '/';
+    } else if (/month/.test(this.options.bucket)) {
+      dateNode = (now.getUTCMonth() + 1) + '/';
+    } else if (/year/.test(this.options.bucket)) {
+      dateNode = now.getUTCFullYear() + '/';
+    }
+
+    var targetNode = type + '/';
+
+    return rootNode + dateNode + targetNode;
+  };
+
+  /**
    * Identifies a user.
    *
-   * @memberof scribe
+   * @memberof Scribe
    *
    * @param userId  The unique user id.
    * @param props   An arbitrary JSON object describing properties of the user.
    *
    */
   Scribe.prototype.identify = function(userId, props, context) {
-    this.options.userId       = userId;
-    this.options.userProfile  = props;
-    this.options.context      = context;
+    this.userId       = userId;
+    this.userProfile  = props;
+    this.context      = context;
 
-    return this.tracker.identify(userId, props, context);
+    this.tracker({
+      path: this.getPath('profile'), 
+      value: Util.jsonify({
+        fingerprint:  this.data.fingerprint,
+        ipAddress:    this.data.ipAddress,
+        userId:       userId,
+        userProfile:  userProfile,
+        visitorId:    this.visitorId
+      }), 
+      op: 'replace'
+    });
   };
 
   /**
    * Tracks an event.
    *
-   * @memberof scribe
+   * @memberof Scribe
    *
    * @param name        The name of the event, such as 'downloaded trial'.
    * @param props       An arbitrary JSON object describing properties of the event.
@@ -677,20 +847,47 @@ var Scribe = function(options) {
    *
    */
   Scribe.prototype.track = function(name, props, callback) {
-    return this.tracker.track(name, props, callback);
+    var path = this.getPath('history');
+
+    this.tracker({
+      path: this.getPath('events'),
+      value: Util.jsonify(
+        Util.merge(
+          props || {}, 
+          {
+            event:      name, 
+            userId:     this.userId, 
+            visitorId:  this.visitorId,
+            timestamp:  props.timestamp || (new Date()).toISOString()
+          }
+        )
+      ),
+      op: 'append'
+    });
   };
 
+  /**
+   * Identifies the user as a member of some group.
+   *
+   * @memberof Scribe
+   *
+   * @param groupId
+   * @param props
+   *
+   */
   Scribe.prototype.group = function(groupId, props) {
-    this.options.userGroupId      = groupId;
-    this.options.userGroupProfile = props;
+    this.userGroupId      = groupId;
+    this.userGroupProfile = props;
 
     return this.tracker.group(groupId, props);
   };
 
+  /**
+   * Tracks a page view.
+   *
+   */
   Scribe.prototype.pageview = function(url) {
-    var self = this;
-
-
+    this.track('pageview', Env.getPageloadData());
   };
   
   Events.onready(function() {
