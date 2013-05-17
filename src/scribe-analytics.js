@@ -194,11 +194,13 @@ var Scribe = function(options) {
         }
       }
 
+      priors.clear();
+
       priors.push(prefix);
 
       if (sel !== '') sel = '>' + sel;
 
-      sel = priors.join('+') + sel;
+      sel = priors.join('+') + ':nth-child(' + index + ')' + sel;
 
       node = parent;
     }
