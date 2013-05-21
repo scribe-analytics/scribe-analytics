@@ -15,30 +15,30 @@ The driving philosophy behind Scribe Analytics is that you can't understand data
     cases it won't be necessary), you can use Scribe.track().
 
 When you create the Scribe Analytics object, you must specify the configuration 
-options. These options are detailed in the [Configuration][] section.
+options. These options are detailed in the Configuration section.
 
 # Configuration
 
 When creating a Scribe Analytics object, the following options are supported:
 
- * **tracker** -- The tracker to use for storing data. See [Trackers][] for more
+ * **tracker** &mdash; The tracker to use for storing data. See Trackers for more
    information on this option.
 
    This is a required field. There is no default.
- * **bucket** -- Determines whether or not to include time information in the 
+ * **bucket** &mdash; Determines whether or not to include time information in the 
    path where events are stored. Must be equal to 'none', 'daily', 'monthly', 
    or 'yearly'. If you choose *monthly*, for example, then events will be 
    organized into paths that contain the year and month in which the event
    occurred (e.g. '/2013-12/').
 
    The default for this option is 'none'.
- * **breakoutUsers** -- Determines whether or not to include user ID information
+ * **breakoutUsers** &mdash; Determines whether or not to include user ID information
    in the path where events are stored. If you set this field to *true*, then 
    events for identified users will be organized into paths like '/users/123/',
    where 123 is a user ID.
 
    The default for this option is *false*.
- * **breakoutVisitors** -- Determines whether or not to include visitor ID 
+ * **breakoutVisitors** &mdash; Determines whether or not to include visitor ID 
    information in the path where events are stored. If you set this field to
    *true*, then events for anonymous visitors will be organized into paths like
    '/visitors/123', where 123 is a visitor ID.
@@ -62,7 +62,7 @@ whether the data should replace the existing data at that path, or append to the
 data stored at that path.
 
 In most cases, you won't have to create your own tracker because you can use
-one of the supplied integrations (see [Integrations][] below).
+one of the supplied integrations (see Integrations below).
 
 ### Paths
 
@@ -102,34 +102,34 @@ where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or other t
 
 ## Segment.IO
 
-*Coming Soon* -- The Segment IO integration can direct data to a variety of 
+*Coming Soon* &mdash; The Segment IO integration can direct data to a variety of 
 different backends, which can be configured on the Segment IO dashboard.
 
 # License
 
-Copyright (c) 2013, Scribe Analytics Team
-All rights reserved.
+    Copyright (c) 2013, Scribe Analytics Team
+    All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Scribe Analytics nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the Scribe Analytics nor the
+        names of its contributors may be used to endorse or promote products
+        derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
