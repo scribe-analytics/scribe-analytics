@@ -68,7 +68,7 @@ one of the supplied integrations (see [Integrations][] below).
 
 In Scribe Analytics, all data is organized into directories. Depending on the
 backend you are using, these directories might be mapped into collections,
-databases, or actual directories.
+databases, or physical directories.
 
 # Integrations
 
@@ -78,16 +78,27 @@ contributions from third-parties.
 ## Console
 
 The Console integration merely dumps information to the console. It's primary
-use case is debugging or experimenting with Scribe.
+use case is debugging or exploring the capabilities of Scribe.
 
     <script type="text/javascript" src="scribe-console.js"></script>
+    ...
+    var scribe = new Scribe({
+      tracker: new ScribeConsoleTracker()
+    });
 
 ## Precog
 
 The Precog integration dumps all information into the [Precog analytics store](http://precog.com),
-where it can then be analyzed by Labcoat or other tools.
+where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or other tools.
 
     <script type="text/javascript" src="scribe-precog.js"></script>
+    ...
+    var scribe = new Scribe({
+      tracker: new ScribePrecogTracker({
+                     apiKey:    apiKey, 
+                     rootPath:  rootPath
+                    });
+    });
 
 ## Segment.IO
 
