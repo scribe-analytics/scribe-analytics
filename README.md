@@ -15,13 +15,13 @@ The driving philosophy behind Scribe Analytics is that you can't understand data
     cases it won't be necessary), you can use Scribe.track().
 
 When you create the Scribe Analytics object, you must specify the configuration 
-options. These options are detailed in the Configuration section.
+options. These options are detailed in the [Configuration](#configuration) section.
 
 # Configuration
 
 When creating a Scribe Analytics object, the following options are supported:
 
- * **tracker** &mdash; The tracker to use for storing data. See Trackers for more
+ * **tracker** &mdash; The tracker to use for storing data. See [Trackers](#trackers) for more
    information on this option.
 
    This is a required field. There is no default.
@@ -62,7 +62,7 @@ whether the data should replace the existing data at that path, or append to the
 data stored at that path.
 
 In most cases, you won't have to create your own tracker because you can use
-one of the supplied integrations (see Integrations below).
+one of the supplied integrations (see [Integrations](#integrations) below).
 
 ### Paths
 
