@@ -64,12 +64,16 @@ data stored at that path.
 In most cases, you won't have to create your own tracker because you can use
 one of the supplied integrations (see [Integrations][] below).
 
+### Paths
+
+In Scribe Analytics, all data is organized into directories. Depending on the
+backend you are using, these directories might be mapped into collections,
+databases, or actual directories.
 
 # Integrations
 
 Scribe Analytics contains a growing number of integrations. We welcome 
 contributions from third-parties.
-
 
 ## Console
 
@@ -87,7 +91,8 @@ where it can then be analyzed by Labcoat or other tools.
 
 ## Segment.IO
 
-*Coming Soon* -- The Segment IO integration can direct data to a variety of different backends.
+*Coming Soon* -- The Segment IO integration can direct data to a variety of 
+different backends, which can be configured on the Segment IO dashboard.
 
 # License
 
