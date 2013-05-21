@@ -335,6 +335,18 @@ if (typeof Scribe === 'undefined') {
       return pairs;
     };
 
+    Util.size = function(v) {
+      if (v === undefined) return 0;
+      else if (v instanceof Array) return v.length;
+      else if (v instanceof Object) {
+        var size = 0;
+        for (var key in v) {
+          if (!v.hasOwnProperty || v.hasOwnProperty(key)) ++size;
+        }
+        return size;
+      } else return 1;
+    };
+
     Util.mapJson = function(v, f) {
       var vp, vv;
       if (v instanceof Array) {
@@ -342,7 +354,7 @@ if (typeof Scribe === 'undefined') {
         for (var i = 0; i < v.length; i++) {
           vv = Util.mapJson(v[i], f);
 
-          if (vv !== undefined) vp.push(vv);
+          if (Util.size(vv) > 0) vp.push(vv);
         }
         return vp;
       } else if (v instanceof Object) {
@@ -350,7 +362,7 @@ if (typeof Scribe === 'undefined') {
         for (var k in v) {
           vv = Util.mapJson(v[k], f);
 
-          if (vv !== undefined) vp[k] = vv;
+          if (Util.size(vv) > 0) vp[k] = vv;
         }
         return vp;
       } else return f(v);
@@ -453,7 +465,7 @@ if (typeof Scribe === 'undefined') {
         setTimeout(checker, refresh);
       };
 
-      checker();
+      setTimeout(0, checker);
     };
 
     Util.getDataset = function(node) {
@@ -501,6 +513,15 @@ if (typeof Scribe === 'undefined') {
       return (pad + n).slice(-pad.length);
     };
 
+    Util.getNodeDescriptor = function(node) {
+      return {
+        id:         node.id,
+        selector:   Util.genCssSelector(node),
+        title:      node.title === '' ? undefined : node.title,
+        data:       Util.getDataset(node)
+      };
+    };
+
     var Env = {};
 
     Env.getFingerprint = function() {    
@@ -522,7 +543,6 @@ if (typeof Scribe === 'undefined') {
         version:      BrowserDetect.version,
         platform:     BrowserDetect.OS,
         language:     navigator.language || navigator.userLanguage || navigator.systemLanguage,
-        fingerprint:  fingerprint,
         plugins:      Env.getPluginsData()
       });
     };
@@ -647,8 +667,6 @@ if (typeof Scribe === 'undefined') {
 
           if (e.target.nodeType == 3) e.target = e.target.parentNode;
 
-          // console.log(Util.getDataset(e.target));
-
           return f(e);
         };
       };
@@ -685,7 +703,7 @@ if (typeof Scribe === 'undefined') {
           if (start !== undefined) {
             var delta = (end.timeStamp - start.timeStamp);
 
-            if (delta >= 250 /*self.options().minEngagement*/ && 
+            if (delta >= 750 /*self.options().minEngagement*/ && 
                 delta <= 20000 /*self.options().maxEngagement*/)
               handler.dispatch(start, end);
           }
@@ -825,36 +843,20 @@ if (typeof Scribe === 'undefined') {
 
       this.context = {};
 
+      this.context.fingerprint = Env.getFingerprint();
+
+      this.context.sessionId = (function() {
+        var sessionId = sessionStorage.getItem('scribe_sid') || Util.genGuid();
+
+        sessionStorage.setItem('scribe_sid', sessionId);
+
+        return sessionId;
+      })();
+
       this.context.visitorId = (function() {
-        var createCookie = function(name,value,days) {
-          var expires, date;
-          if (days) {
-            date = new Date();
-            date.setTime(date.getTime()+(days*24*60*60*1000));
-            expires = "; expires="+date.toGMTString();
-          }
-          else expires = "";
-          document.cookie = name+"="+value+expires+"; path=/";
-        };
+        var visitorId = localStorage.getItem('scribe_vid') || Util.genGuid();
 
-        var readCookie = function(name) {
-          var nameEQ = name + "=", ca, c, i;
-          ca = document.cookie.split(';');
-          for(i=0;i < ca.length;i++) {
-            c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
-          }
-          return null;
-        };
-
-        var lid = (typeof localStorage !== 'undefined') ? localStorage.getItem('scribe_vid') : undefined;
-        var cid = readCookie('scribe_vid');
-
-        var visitorId = lid || cid || Util.genGuid();
-
-        (typeof localStorage !== 'undefined') && localStorage.setItem('scribe_vid', visitorId);
-        createCookie('scribe_vid', visitorId);
+        localStorage.setItem('scribe_vid', visitorId);
 
         return visitorId;
       })();
@@ -883,18 +885,37 @@ if (typeof Scribe === 'undefined') {
         }());
       }
 
+      // Try to obtain geo location if possible:
       Geo.geoip(function(position) {
         self.context.geo = position;
       });
 
+      // Track page view, but only after the DOM has loaded:
       Events.onready(function() {
         // Track the initial pageview:
         self.pageview();
       });
 
+      // Track hash changes:
       Events.onhashchange(function(e) {
-        // Track hash changes:
-        self.track('jump', {targetId: e.hash});
+        var id = e.hash.substring(1);
+
+        // If it's a real node, get it so we can capture node data:
+        var targetNode = document.getElementById(id);
+
+        var data = targetNode ? Util.getNodeDescriptor(targetNode) : {id: id};
+
+        self.track('jump', {target: data});
+      });
+
+      // Track all clicks to the document:
+      Events.onevent(document.body, 'click', true, function(e) {
+        self.track('click', {target: Util.getNodeDescriptor(e.target)});
+      });
+
+      // Track all engagement:
+      Events.onengage(function(start, end) {
+        self.track('engage', {target: Util.getNodeDescriptor(start.target), duration: end.timeStamp - start.timeStamp});
       });
     };
 
@@ -1013,26 +1034,11 @@ if (typeof Scribe === 'undefined') {
     };
     
     Events.onready(function() {
-      console.log(Util.jsonify(Env.getPageloadData()));
-
-      Events.onengage(function(start, end) {
-        var target = start.target;
-
-        var delta = end.timeStamp - start.timeStamp;
-
-        console.log('Engaged: ' + delta + ' milliseconds with ' + Util.genCssSelector(target));
-      });
-
       Events.onsubmit(function(e) {
         console.log('Form submit');
         console.log(e);
         console.log(Util.getFormData(e.form));
         e.preventDefault();
-      });
-
-      Util.monitorElements('p', function(e) {
-        console.log('Detected new P element');
-        console.log(e);
       });
     });
 
