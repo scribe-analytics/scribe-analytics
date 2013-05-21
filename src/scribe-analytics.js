@@ -614,9 +614,9 @@ if (typeof Scribe === 'undefined') {
           filename:     pi.filename,
           version:      pi.version,
           mimeType: (pi.length > 0) ? ({
-            type: pi[0].type,
-            description: pi[0].description,
-            suffixes: pi[0].suffixes
+            type:         pi[0].type,
+            description:  pi[0].description,
+            suffixes:     pi[0].suffixes
           }) : undefined
         });
       }
