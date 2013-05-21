@@ -17,9 +17,36 @@
       <label>Name:</label><input type="text"></input>
       <label>Email:</label><input type="email"></input>
     </form>
+    <div id='#scribe-output'>
+    </div>
 
     <script>
-        var scribe = new Scribe();
+        function escapeHTML(html) {
+            var escape = document.createElement('textarea');
+            escape.innerHTML = html;
+            return escape.innerHTML;
+        }
+
+        function unescapeHTML(html) {
+            var escape = document.createElement('textarea');
+            escape.innerHTML = html;
+            return escape.value;
+        }
+
+        var scribe = new Scribe({
+          bucket: 'none',
+          tracker: function(opts) {
+            var path  = opts.path;
+            var value = opts.value;
+
+            var div = document.createElement('DIV');
+
+            div.innerHTML += '<p class="path">' + path + '</p>';
+            div.innerHTML += '<pre class="event">' + escapeHTML(JSON.stringify(value, null, '  ')) + '</pre>';
+
+            document.body.appendChild(div);
+          }
+        });
     </script>
   </body>
 </html>
