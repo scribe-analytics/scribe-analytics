@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="../libs/nodeunit/nodeunit.css" type="text/css" />
     <script src="../libs/nodeunit/nodeunit.js"></script>
     <script src="../dist/scribe-analytics.js"></script>
+    <script src="../integrations/console/scribe-console.js"></script>
+    <script src="../integrations/precog/scribe-precog.js"></script>
     <script src="test-api.js"></script>
   </head>
   <body>
@@ -33,7 +35,7 @@
             return escape.value;
         }
 
-        var scribe = new Scribe({
+        /*var scribe = new Scribe({
           bucket: 'none',
           tracker: function(opts) {
             var path  = opts.path;
@@ -46,7 +48,8 @@
 
             document.body.appendChild(div);
           }
-        });
+        });*/
+        new Scribe(new ScribeConsoleTracker());
     </script>
   </body>
 </html>

@@ -82,9 +82,7 @@ use case is debugging or exploring the capabilities of Scribe.
 
     <script type="text/javascript" src="scribe-console.js"></script>
     ...
-    var scribe = new Scribe({
-      tracker: new ScribeConsoleTracker()
-    });
+    var scribe = new Scribe(new ScribeConsoleTracker());
 
 ## Precog
 
@@ -93,12 +91,12 @@ where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or other t
 
     <script type="text/javascript" src="scribe-precog.js"></script>
     ...
-    var scribe = new Scribe({
-      tracker: new ScribePrecogTracker({
-                     apiKey:    apiKey, 
-                     rootPath:  rootPath
-                    });
-    });
+    var scribe =  new Scribe(
+                    new ScribePrecogTracker({
+                      apiKey:    apiKey, 
+                      rootPath:  rootPath
+                    })
+                  );
 
 ## Segment.IO
 

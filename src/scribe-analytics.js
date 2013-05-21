@@ -221,8 +221,6 @@ if (typeof Scribe === 'undefined') {
         node = parent;
       }
 
-      console.log(document.body.querySelectorAll(sel));
-
       return sel;
     };
 
@@ -627,7 +625,7 @@ if (typeof Scribe === 'undefined') {
 
     var Handler = function() {
       this.handlers = [];
-      this.onerror = (console && console.log) || (function() {});
+      this.onerror = (console && console.log) || window.onerror || (function(e) {});
     };
 
     Handler.prototype.push = function(f) {
