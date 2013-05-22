@@ -93,8 +93,9 @@ where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or other t
     ...
     var scribe =  new Scribe(
                     new ScribePrecogTracker({
-                      apiKey:    apiKey, 
-                      rootPath:  rootPath
+                      apiKey:           apiKey, 
+                      analyticsService: analyticsServiceUrl,
+                      rootPath:         rootPath
                     })
                   );
 
