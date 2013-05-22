@@ -2,11 +2,20 @@ var ScribePrecogTracker = function(config) {
   if (!(this instanceof ScribePrecogTracker)) return new ScribePrecogTracker(config);
 
   this.config = config;
+  this.api    = new Precog.api({apiKey: config.apiKey, analyticsService: config.analyticsService});
 };
 
-ScribePrecogTracker.prototype.tracker = function(opts) {
-  var path = opts.path;
-  var value = opts.value;
-
-  
+ScribePrecogTracker.prototype.tracker = function(info) {
+  if (info.op === 'append') {
+    this.api.append({
+      path:  info.path,
+      value: info.value
+    });
+  } else if (info.op === 'replace') {
+    this.api.uploadFile({
+      path:     info.path, 
+      contents: JSON.stringify(info.value), 
+      type:     'application/json'
+    });
+  } else throw new Error('Unknown operational semantic: ' + info.op);
 };
