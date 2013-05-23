@@ -465,7 +465,7 @@ if (typeof Scribe === 'undefined') {
         setTimeout(checker, refresh);
       };
 
-      setTimeout(0, checker);
+      setTimeout(checker, 0);
     };
 
     Util.getDataset = function(node) {
@@ -910,12 +910,24 @@ if (typeof Scribe === 'undefined') {
 
       // Track all clicks to the document:
       Events.onevent(document.body, 'click', true, function(e) {
-        self.track('click', {target: Util.getNodeDescriptor(e.target)});
+        // if (e.target.tagName !== 'A') {
+          // TODO: Do not track clicks on links, these are tracked separately!
+          self.track('click', {target: Util.getNodeDescriptor(e.target)});
+        // }
       });
 
       // Track all engagement:
       Events.onengage(function(start, end) {
         self.track('engage', {target: Util.getNodeDescriptor(start.target), duration: end.timeStamp - start.timeStamp});
+      });
+
+      // Track all clicks on links:
+      Util.monitorElements('a', function(el) {
+        Events.onevent(el, 'click', true, function(e) {
+          e.preventDefault();
+
+          self.track('click', {url: Util.parseUrl(el.href)});
+        });
       });
     };
 

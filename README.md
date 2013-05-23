@@ -29,16 +29,22 @@ Scribe Analytics tracks virtually every user interaction possible.
    submission, is captured, including details on all form fields that are not 
    marked as passwords. For this to work, the form must not be contained in an 
    iframe.
+ * **Redirects** &mdash; Scribe will attempt to capture JavaScript redirects,
+   but if the user is redirected to another site, and never returns, the 
+   redirect may not be captured.
+
+Scribe Analytics will capture clicks on links and form interaction even when 
+those links and forms are added dynamically via JavaScript.
 
 # Getting Started
 
- 1. Include the Scribe analytics module inside your HTML pages.
+ 1. Include the Scribe Analytics module inside your HTML pages.
         <script type="application/javascript" src="scribe-analytics.js"></script>
  2. Create a new Scribe Analytics object, specifying the configuration options.
         var scribe = new Scribe({tracker: myTracker});
- 3. That's all! If you're website supports login, you should also use the 
-    Scribe.identify() method. If you want to track custom events (in most
-    cases it won't be necessary), you can use Scribe.track().
+ 3. That's all! If your website supports login, you should also use the 
+    Scribe.identify() method. If you want to track custom events, you can use 
+    Scribe.track().
 
 When you create the Scribe Analytics object, you must specify the configuration 
 options. These options are detailed in the [Configuration](#configuration) section.
