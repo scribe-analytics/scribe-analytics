@@ -14,12 +14,13 @@ Scribe Analytics tracks virtually every user interaction possible.
    information on the browser, referrer, platform, and much more.
  * **Clicks** &mdash; Every click event will be captured, including information
    on the element that is clicked (id, title, data attributes, unique css 
-   selector).
+   selector). If a link is clicked, then then information on the link target
+   will be captured, as well.
  * **Engagements** &mdash; Every engagement with any HTML element in a document
    is captured, including information on the element (id, title, data 
    attributes, unique css selector). Engagement is defined as a mouseover 
-   for between a certain time window (e.g. 1 and 20 seconds). Mouseovers outside
-   the window are not counted as engagements.
+   inside a certain time window (e.g. 1 and 20 seconds). Mouseovers outside
+   the time window are not counted as engagements.
  * **Jumps** &mdash; Every jump (defined as navigation inside a page which 
    results in a change to the URL hash) is captured, including information on 
    the element that was jumped to (id, title, data attributes, unique css 
@@ -76,15 +77,20 @@ The only option required to create a Scribe object is a *tracker*. A
 tracker is a function which accepts an object of the following form:
 
     {
-      "path":   (A String),
-      "value":  (A JSON Value),
-      "op":     (Either "replace" or "append")
+      "path":    (A String),
+      "value":   (A JSON Value),
+      "op":      (Either "replace" or "append"),
+      "success": (A success callback),
+      "failure": (A failure callback)
     }
 
 The *path* field contains information on how the data should be organized. The 
 *value* field contains the raw data to store. Finally, the *op* field denotes
 whether the data should replace the existing data at that path, or append to the
 data stored at that path.
+
+The *success* and *failure* fields, if present, are functions that should be 
+called on success or failure, respectively.
 
 In most cases, you won't have to create your own tracker because you can use
 one of the supplied integrations (see [Integrations](#integrations) below).
