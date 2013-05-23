@@ -322,11 +322,13 @@ if (typeof Scribe === 'undefined') {
         for (var i = 0; i < vars.length; i++) {
           if (vars[i].length > 0) {
             var pair = vars[i].split('=');
-            
-            var name = decodeURIComponent(pair[0]);
-            var value = (pair.length > 1) ? decodeURIComponent(pair[1]) : 'true';
 
-            pairs[name] = value; 
+            try {            
+              var name = decodeURIComponent(pair[0]);
+              var value = (pair.length > 1) ? decodeURIComponent(pair[1]) : 'true';
+
+              pairs[name] = value; 
+            } catch (e) { }
           }
         }
       }
@@ -560,7 +562,7 @@ if (typeof Scribe === 'undefined') {
     Env.getDocumentData = function() {
       return ({
         title:    document.title,
-        referrer: document.referrer,
+        referrer: document.referrer && Util.parseUrl(document.referrer) || undefined,
         url:      Env.getUrlData()
       });
     };

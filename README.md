@@ -2,7 +2,32 @@
 
 Scribe Analytics is a client-side JavaScript library designed to capture all interaction data into a user-defined, pluggable back-end.
 
-The driving philosophy behind Scribe Analytics is that you can't understand data if you don't measure it. So Scribe captures everything, all the time, with no custom coding required.
+The driving philosophy behind Scribe Analytics is that you can't ask questions over data that you didn't capture.
+
+So Scribe captures everything. All the time. With no custom coding required.
+
+# Scope
+
+Scribe Analytics tracks virtually every user interaction possible.
+
+ * **Page views** &mdash; Every page view event is captured, together with 
+   information on the browser, referrer, platform, and much more.
+ * **Clicks** &mdash; Every click event will be captured, including information
+   on the element that is clicked (id, title, data attributes, unique css 
+   selector).
+ * **Engagements** &mdash; Every engagement with any HTML element in a document
+   is captured, including information on the element (id, title, data 
+   attributes, unique css selector). Engagement is defined as a mouseover 
+   for between a certain time window (e.g. 1 and 20 seconds). Mouseovers outside
+   the window are not counted as engagements.
+ * **Jumps** &mdash; Every jump (defined as navigation inside a page which 
+   results in a change to the URL hash) is captured, including information on 
+   the element that was jumped to (id, title, data attributes, unique css 
+   selector).
+ * **Forms** &mdash; All form interaction, including form abandonment and form
+   submission, is captured, including details on all form fields that are not 
+   marked as passwords. For this to work, the form must not be contained in an 
+   iframe.
 
 # Getting Started
 

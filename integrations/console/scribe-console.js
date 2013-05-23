@@ -4,10 +4,16 @@ var ScribeConsoleTracker = function(config) {
   this.config = config;
 };
 
-ScribeConsoleTracker.prototype.tracker = function(opts) {
-  var path = opts.path;
-  var value = opts.value;
+ScribeConsoleTracker.prototype.tracker = function(info) {
+  var path = info.path;
+  var value = info.value;
 
-  console.log(path);
-  console.log(value);
+  if (typeof console !== 'undefined') {
+    console.log(path);
+    console.log(value);
+
+    info.success && setTimeout(info.success, 0);
+  } else {
+    info.failure && setTimeout(info.failure, 0);
+  }
 };

@@ -16,12 +16,12 @@ ScribePrecogTracker.prototype.tracker = function(info) {
     this.api.append({
       path:  info.path,
       value: info.value
-    });
+    }, info.success, info.failure);
   } else if (info.op === 'replace') {
     this.api.uploadFile({
       path:     info.path, 
       contents: JSON.stringify(info.value), 
       type:     'application/json'
-    });
+    }, info.success, info.failure);
   } else throw new Error('Unknown operational semantic: ' + info.op);
 };
