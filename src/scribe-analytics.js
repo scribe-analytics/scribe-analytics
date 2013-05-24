@@ -949,7 +949,12 @@ if (typeof Scribe === 'undefined') {
         Events.onevent(el, 'click', true, function(e) {
           e.preventDefault();
 
-          self.track('click', {target: Util.merge({url: Util.parseUrl(el.href)}, Util.getNodeDescriptor(e.target))});
+          self.track('click', 
+            {target: Util.merge({url: Util.parseUrl(el.href)}, Util.getNodeDescriptor(e.target))},
+            function() {
+              // Redirect to the link location:
+              document.location = el.href;
+            });
         });
       });
     };
