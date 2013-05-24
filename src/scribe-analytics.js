@@ -1018,6 +1018,10 @@ if (typeof Scribe === 'undefined') {
           }
         });
       });
+
+      // Load and send any pending events:
+      this._loadOutbox();
+      this._sendOutbox();
     };
 
     /**
@@ -1049,6 +1053,24 @@ if (typeof Scribe === 'undefined') {
       return rootNode + dateNode + targetNode;
     };
 
+    Scribe.prototype._saveOutbox = function() {
+      localStorage.setItem('scribe_outbox', JSON.stringify(this.outbox));
+    };
+
+    Scribe.prototype._loadOutbox = function() {
+      this.outbox = JSON.parse(localStorage.getItem('scribe_outbox') || '[]');
+    };
+
+    Scribe.prototype._sendOutbox = function() {
+      for (var i = 0; i < this.outbox.length; i++) {
+        var message = this.outbox[i];
+
+        this.tracker(message);
+      }
+      this.outbox.clear();
+      this._saveOutbox();
+    };
+
     /**
      * Identifies a user.
      *
@@ -1078,7 +1100,7 @@ if (typeof Scribe === 'undefined') {
     };
 
     /**
-     * Tracks an event.
+     * Tracks an event now.
      *
      * @memberof Scribe
      *
@@ -1088,8 +1110,6 @@ if (typeof Scribe === 'undefined') {
      *
      */
     Scribe.prototype.track = function(name, props, success, failure) {
-      var path = this.getPath('history');
-
       props = props || {};
 
       props.timestamp = props.timestamp || (new Date()).toISOString();
@@ -1102,6 +1122,33 @@ if (typeof Scribe === 'undefined') {
         success: success,
         failure: failure
       });
+    };
+
+    /**
+     * Tracks an event later.
+     *
+     * @memberof Scribe
+     *
+     * @param name        The name of the event, such as 'downloaded trial'.
+     * @param props       An arbitrary JSON object describing properties of the event.
+     *
+     */
+    Scribe.prototype.trackLater = function(name, props) {
+      props = props || {};
+
+      props.timestamp = props.timestamp || (new Date()).toISOString();
+      props.event     = name;
+
+      var value = {
+        path:    this.getPath('events'), 
+        value:   Util.jsonify(Util.merge(this.context, props)),
+        op:      'append'
+      };
+
+      this.outbox.push(value);
+      this._saveOutbox();
+
+      return value;
     };
 
     /**
