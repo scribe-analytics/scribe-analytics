@@ -1001,18 +1001,30 @@ if (typeof Scribe === 'undefined') {
           var intercepted = target.getAttribute('scribe_intercepted');
 
           if (!intercepted) {
-            target.setAttribute('scribe_intercepted', 'true');
+            target.setAttribute('scribe_intercepted', 'true');            
 
-            e.preventDefault();
+            var parsedUrl = Util.parseUrl(el.href);
+            var value = {target: Util.merge({url: parsedUrl}, Util.getNodeDescriptor(target))};
 
-            self.track('click', 
-              {target: Util.merge({url: Util.parseUrl(el.href)}, Util.getNodeDescriptor(target))},
-              // TODO: Push to outbox if necessary; improve latency for in-site links.
-              function() {
-                // Simulate a click to the original element:
-                DomUtil.simulateMouseEvent(target, 'click');
-              }
-            );
+            if (parsedUrl.hostname === document.location.hostname) {
+              // We are linking to a page on the same site. There's no need to send
+              // the event now, we can safely send it later:
+              self.trackLater('click', value);
+            } else {
+              e.preventDefault();
+
+              // We are linking to a page that is not on this site. So we first
+              // wait to send the event before simulating a different click
+              // on the link. This ensures we don't lose the event if the user
+              // does not return to this site ever again.
+              self.track('click', 
+                value,
+                function() {
+                  // Simulate a click to the original element:
+                  DomUtil.simulateMouseEvent(target, 'click');
+                }
+              );
+            }
           } else {
             target.removeAttribute('scribe_intercepted');
           }
@@ -1067,7 +1079,7 @@ if (typeof Scribe === 'undefined') {
 
         this.tracker(message);
       }
-      this.outbox.clear();
+      this.outbox = [];
       this._saveOutbox();
     };
 
