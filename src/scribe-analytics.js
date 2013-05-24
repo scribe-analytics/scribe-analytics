@@ -992,7 +992,7 @@ if (typeof Scribe === 'undefined') {
      * @param props   An arbitrary JSON object describing properties of the user.
      *
      */
-    Scribe.prototype.identify = function(userId, props, context) {
+    Scribe.prototype.identify = function(userId, props, context, success, failure) {
       this.context.userId       = userId;
       this.context.userProfile  = props;
       
@@ -1005,7 +1005,9 @@ if (typeof Scribe === 'undefined') {
       this.tracker({
         path:   this.getPath('profile'), 
         value:  Util.jsonify(Util.merge(this.context, props)),
-        op:     'replace'
+        op:     'replace',
+        success: success,
+        failure: failure
       });
     };
 
@@ -1019,7 +1021,7 @@ if (typeof Scribe === 'undefined') {
      * @param callback    A function to call when the tracking is complete.
      *
      */
-    Scribe.prototype.track = function(name, props, callback) {
+    Scribe.prototype.track = function(name, props, success, failure) {
       var path = this.getPath('history');
 
       props = props || {};
@@ -1028,9 +1030,11 @@ if (typeof Scribe === 'undefined') {
       props.event     = name;
 
       this.tracker({
-        path:   this.getPath('events'), 
-        value:  Util.jsonify(Util.merge(this.context, props)),
-        op:     'append'
+        path:    this.getPath('events'), 
+        value:   Util.jsonify(Util.merge(this.context, props)),
+        op:      'append',
+        success: success,
+        failure: failure
       });
     };
 
@@ -1043,7 +1047,7 @@ if (typeof Scribe === 'undefined') {
      * @param props
      *
      */
-    Scribe.prototype.group = function(groupId, props) {
+    Scribe.prototype.group = function(groupId, props, success, failure) {
       this.userGroupId      = groupId;
       this.userGroupProfile = props;
 
@@ -1054,7 +1058,9 @@ if (typeof Scribe === 'undefined') {
       this.tracker({
         path:   this.getPath('groups'), 
         value:  Util.jsonify(Util.merge(this.context, props)),
-        op:     'replace'
+        op:     'replace',
+        success: success,
+        failure: failure
       });
     };
 
@@ -1062,10 +1068,10 @@ if (typeof Scribe === 'undefined') {
      * Tracks a page view.
      *
      */
-    Scribe.prototype.pageview = function(url) {
+    Scribe.prototype.pageview = function(url, success, failure) {
       url = url || document.location;
 
-      this.track('pageview', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}));
+      this.track('pageview', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);
     };
     
     Events.onready(function() {
