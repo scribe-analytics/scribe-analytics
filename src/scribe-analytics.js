@@ -522,6 +522,27 @@ if (typeof Scribe === 'undefined') {
       };
     };
 
+    Util.getAncestors = function(node) {
+      var cur = node;
+      var result = [];
+
+      while (cur && cur !== document.body) {
+        result.push(cur);
+        cur = cur.parentNode;
+      }
+
+      return result;
+    };
+
+    var ArrayUtil = {};
+
+    ArrayUtil.exists = function(array, f) {
+      for (var i = 0; i < array.length; i++) {
+        if (f(array[i])) return true;
+      }
+      return false;
+    };
+
     var Env = {};
 
     Env.getFingerprint = function() {    
@@ -910,10 +931,12 @@ if (typeof Scribe === 'undefined') {
 
       // Track all clicks to the document:
       Events.onevent(document.body, 'click', true, function(e) {
-        // if (e.target.tagName !== 'A') {
-          // TODO: Do not track clicks on links, these are tracked separately!
+        var ancestors = Util.getAncestors(e.target);
+
+        // Do not track clicks on links, these are tracked separately!
+        if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
           self.track('click', {target: Util.getNodeDescriptor(e.target)});
-        // }
+        }
       });
 
       // Track all engagement:
@@ -926,7 +949,7 @@ if (typeof Scribe === 'undefined') {
         Events.onevent(el, 'click', true, function(e) {
           e.preventDefault();
 
-          self.track('click', {url: Util.parseUrl(el.href)});
+          self.track('click', {target: Util.merge({url: Util.parseUrl(el.href)}, Util.getNodeDescriptor(e.target))});
         });
       });
     };
