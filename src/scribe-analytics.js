@@ -750,6 +750,41 @@ if (typeof Scribe === 'undefined') {
       }
     };
 
+    Events.onexit = (function() {
+      var unloaded = false;
+
+      var handler = new Handler();
+
+      var handleUnload = function(e) {
+        if (!unloaded) {
+          handler.dispatch(e);
+          unloaded = true;
+        }
+      };
+
+      Events.onevent(window, 'unload', undefined, handleUnload);
+
+      var replaceUnloader = function(obj) {
+        var oldUnloader = obj.onunload || (function(e) {});
+
+        obj.onunload = function(e) {
+          handleUnload();
+
+          oldUnloader(e);
+        };
+      };
+
+      replaceUnloader(window);
+
+      Events.onready(function() {
+        replaceUnloader(document.body);
+      });
+
+      return function(f) {
+        handler.push(f);
+      };
+    })();
+
     Events.onengage = (function() {
       var handler = new Handler();
       var events = [];
@@ -911,6 +946,8 @@ if (typeof Scribe === 'undefined') {
         fingerprint:  Env.getFingerprint()
       };
 
+      this.javascriptRedirect = true;
+
       this.context = {};
 
       this.context.fingerprint = Env.getFingerprint();
@@ -1010,6 +1047,9 @@ if (typeof Scribe === 'undefined') {
               // We are linking to a page on the same site. There's no need to send
               // the event now, we can safely send it later:
               self.trackLater('click', value);
+
+              // It's a click, not a Javascript redirect:
+              self.javascriptRedirect = false;
             } else {
               e.preventDefault();
 
@@ -1020,6 +1060,9 @@ if (typeof Scribe === 'undefined') {
               self.track('click', 
                 value,
                 function() {
+                  // It's a click, not a Javascript redirect:
+                  self.javascriptRedirect = false;
+
                   // Simulate a click to the original element:
                   DomUtil.simulateMouseEvent(target, 'click');
                 }
@@ -1029,6 +1072,13 @@ if (typeof Scribe === 'undefined') {
             target.removeAttribute('scribe_intercepted');
           }
         });
+      });
+
+      // Track JavaScript-based redirects, which can occur without warning:
+      Events.onexit(function(e) {
+        if (self.javascriptRedirect) {
+          self.trackLater('redirect');
+        }
       });
 
       // Load and send any pending events:
@@ -1077,7 +1127,17 @@ if (typeof Scribe === 'undefined') {
       for (var i = 0; i < this.outbox.length; i++) {
         var message = this.outbox[i];
 
-        this.tracker(message);
+        // Specially modify redirect events to save the new URL,
+        // because the URL is not known at the time of the redirect:
+        if (message.value.event === 'redirect') {
+          message.value.target = Util.merge(message.value.target || {}, {url: Util.parseUrl(document.location)});
+        }
+
+        try {
+          this.tracker(message);
+        } catch (e) {
+          // Don't let one bad apple spoil the batch.
+        }
       }
       this.outbox = [];
       this._saveOutbox();
