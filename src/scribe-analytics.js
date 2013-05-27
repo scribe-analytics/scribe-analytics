@@ -946,6 +946,9 @@ if (typeof Scribe === 'undefined') {
         fingerprint:  Env.getFingerprint()
       };
 
+      // Always assume that Javascript is the culprit of leaving the page
+      // (we'll detect and intercept clicks on links and buttons as best 
+      // as possible and override this assumption in these cases):
       this.javascriptRedirect = true;
 
       this.context = {};
@@ -967,30 +970,6 @@ if (typeof Scribe === 'undefined') {
 
         return visitorId;
       })();
-
-      // Date shim:
-      if (!Date.prototype.toISOString ) {
-        (function() {
-          function pad(number) {
-            var r = String(number);
-            if ( r.length === 1 ) {
-              r = '0' + r;
-            }
-            return r;
-          }
-        
-          Date.prototype.toISOString = function() {
-            return this.getUTCFullYear() + 
-              '-' + pad( this.getUTCMonth() + 1 ) + 
-              '-' + pad( this.getUTCDate() ) + 
-              'T' + pad( this.getUTCHours() ) +
-              ':' + pad( this.getUTCMinutes() ) +
-              ':' + pad( this.getUTCSeconds() ) +
-              '.' + String( (this.getUTCMilliseconds()/1000).toFixed(3) ).slice( 2, 5 ) + 
-              'Z';
-          };
-        }());
-      }
 
       // Try to obtain geo location if possible:
       Geo.geoip(function(position) {

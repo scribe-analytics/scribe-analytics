@@ -21,6 +21,8 @@
     window.Scribe = definition();
   }
 })(function() {
+  //= date.js
+
   //= ext/json2.js
 
   //= ext/sessionstorage.1.4.js
