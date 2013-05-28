@@ -46,8 +46,11 @@ important in modern websites because so much content is inserted dynamically.
  2. Create a new Scribe Analytics object, specifying the configuration options.
         var scribe = new Scribe({tracker: myTracker});
  3. That's all! If your website supports login, you should also use the 
-    Scribe.identify() method. If you want to track custom events, you can use 
-    Scribe.track().
+    `Scribe.identify()` method. If you want to track custom events, you can use 
+    `Scribe.track()`.
+
+    While we recommend using `Scribe.identify()` to identify your users, in most
+    cases there is no need to manually track custom events.
 
 When you create the Scribe Analytics object, you must specify the configuration 
 options. These options are detailed in the [Configuration](#configuration) section.
