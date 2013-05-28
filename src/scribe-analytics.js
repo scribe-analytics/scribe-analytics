@@ -181,49 +181,6 @@ if (typeof Scribe === 'undefined') {
 
     var Util = {};
 
-    Util.removeElement = function(array, from, to) {
-      var tail = array.slice((to || from) + 1 || array.length);
-      array.length = from < 0 ? array.length + from : from;
-      return array.push.apply(array, tail);
-    };
-
-    Util.genCssSelector = function(node) {
-      var sel = '';
-
-      while (node != document.body) {
-        var id = node.id;
-        var classes = node.className.split(" ").join(".");
-        var tagName = node.nodeName.toLowerCase();
-
-        if (id && id !== "") id = '#' + id;
-        if (classes !== "") classes = '.' + classes;
-
-        var prefix = tagName + id + classes;
-
-        var parent = node.parentNode;
-        
-        var nthchild = 1;
-
-        for (var i = 0; i < parent.childNodes.length; i++) {
-          if (parent.childNodes[i] === node) break;
-          else {
-            var childTagName = parent.childNodes[i].tagName;
-            if (childTagName !== undefined) {
-              nthchild = nthchild + 1;
-            }
-          }
-        }
-
-        if (sel !== '') sel = '>' + sel;
-
-        sel = prefix + ':nth-child(' + nthchild + ')' + sel;
-
-        node = parent;
-      }
-
-      return sel;
-    };
-
     Util.merge = function(o1, o2) {
       var r, key, index;
       if (o1 === undefined) return o1;
@@ -465,7 +422,7 @@ if (typeof Scribe === 'undefined') {
     };
 
     DomUtil.monitorElements = function(tagName, onnew, refresh) {
-      refresh = refresh || 25;
+      refresh = refresh || 50;
 
       var checker = function() {
         var curElements = document.getElementsByTagName(tagName);
@@ -514,10 +471,48 @@ if (typeof Scribe === 'undefined') {
       } else return {};
     };
 
+
+    DomUtil.genCssSelector = function(node) {
+      var sel = '';
+
+      while (node != document.body) {
+        var id = node.id;
+        var classes = node.className.split(" ").join(".");
+        var tagName = node.nodeName.toLowerCase();
+
+        if (id && id !== "") id = '#' + id;
+        if (classes !== "") classes = '.' + classes;
+
+        var prefix = tagName + id + classes;
+
+        var parent = node.parentNode;
+        
+        var nthchild = 1;
+
+        for (var i = 0; i < parent.childNodes.length; i++) {
+          if (parent.childNodes[i] === node) break;
+          else {
+            var childTagName = parent.childNodes[i].tagName;
+            if (childTagName !== undefined) {
+              nthchild = nthchild + 1;
+            }
+          }
+        }
+
+        if (sel !== '') sel = '>' + sel;
+
+        sel = prefix + ':nth-child(' + nthchild + ')' + sel;
+
+        node = parent;
+      }
+
+      return sel;
+    };
+
     DomUtil.getNodeDescriptor = function(node) {
       return {
         id:         node.id,
-        selector:   Util.genCssSelector(node),
+        selector:   DomUtil.genCssSelector(node),
         title:      node.title === '' ? undefined : node.title,
         data:       DomUtil.getDataset(node)
       };
@@ -583,6 +578,12 @@ if (typeof Scribe === 'undefined') {
     };
 
     var ArrayUtil = {};
+
+    ArrayUtil.removeElement = function(array, from, to) {
+      var tail = array.slice((to || from) + 1 || array.length);
+      array.length = from < 0 ? array.length + from : from;
+      return array.push.apply(array, tail);
+    };
 
     ArrayUtil.toArray = function(alike) {
       var arr = [], i, len = alike.length;
@@ -833,7 +834,7 @@ if (typeof Scribe === 'undefined') {
           for (i = events.length - 1; i >= 0; i--) {
             if (events[i].target == end.target) {
               start = events[i];
-              Util.removeElement(events, i);
+              ArrayUtil.removeElement(events, i);
               break;
             }
           }
