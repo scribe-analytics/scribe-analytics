@@ -1021,7 +1021,9 @@ if (typeof Scribe === 'undefined') {
 
         var data = targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id};
 
-        self.track('jump', {target: data});
+        self.track('jump', {
+          target: data
+        });
       });
 
       // Track all clicks to the document:
@@ -1030,13 +1032,18 @@ if (typeof Scribe === 'undefined') {
 
         // Do not track clicks on links, these are tracked separately!
         if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
-          self.track('click', {target: DomUtil.getNodeDescriptor(e.target)});
+          self.track('click', {
+            target: DomUtil.getNodeDescriptor(e.target)
+          });
         }
       });
 
       // Track all engagement:
       Events.onengage(function(start, end) {
-        self.track('engage', {target: DomUtil.getNodeDescriptor(start.target), duration: end.timeStamp - start.timeStamp});
+        self.track('engage', {
+          target:   DomUtil.getNodeDescriptor(start.target), 
+          duration: end.timeStamp - start.timeStamp
+        });
       });
 
       // Track all clicks on links:
@@ -1055,8 +1062,7 @@ if (typeof Scribe === 'undefined') {
             target.setAttribute('scribe_intercepted', 'true');            
 
             var parsedUrl = Util.parseUrl(el.href);
-            var value = {source: {url: Util.parseUrl(document.location)}, 
-                         target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
+            var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
 
             if (parsedUrl.hostname === document.location.hostname) {
               // We are linking to a page on the same site. There's no need to send
@@ -1091,7 +1097,7 @@ if (typeof Scribe === 'undefined') {
       // Track JavaScript-based redirects, which can occur without warning:
       Events.onexit(function(e) {
         if (self.javascriptRedirect) {
-          self.trackLater('redirect', {source: {url: Util.parseUrl(document.location)}});
+          self.trackLater('redirect');
         }
       });
 
@@ -1212,6 +1218,7 @@ if (typeof Scribe === 'undefined') {
 
       props.timestamp = props.timestamp || (new Date()).toISOString();
       props.event     = name;
+      props.source    = Util.merge(props.source || {}, {url: Util.parseUrl(document.location.url)});
 
       this.tracker({
         path:    this.getPath('events'), 
