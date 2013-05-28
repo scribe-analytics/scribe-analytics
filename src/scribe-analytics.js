@@ -443,11 +443,14 @@ if (typeof Scribe === 'undefined') {
 
         if (type == 'INPUT' || type == 'TEXTFIELD') {
           // INPUT or TEXTFIELD element.
-          // Make sure it's not a password:
-          if (child.type != 'password') {
-            // Make sure it's not a radio or it's a checked radio:
-            if (child.type != 'radio' || child.checked) {
-              setAcc(child.name, child.value);
+          // Make sure auto-complete is not turned off:
+          if ((child.getAttribute('autocomplete') || '').toLowerCase() !== 'off') {
+            // Make sure it's not a password:
+            if (child.type !== 'password') {
+              // Make sure it's not a radio or it's a checked radio:
+              if (child.type !== 'radio' || child.checked) {
+                setAcc(child.name, child.value);
+              }
             }
           }
         } else if (type == 'SELECT') {

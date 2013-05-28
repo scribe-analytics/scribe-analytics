@@ -27,7 +27,8 @@ Scribe Analytics tracks virtually every user interaction possible.
    selector).
  * **Forms** &mdash; All form interaction, including form abandonment and form
    submission, is captured, including details on all form fields that are not 
-   marked as passwords. Forms interaction inside iframes will not be captured.
+   marked as passwords and which have not turned off auto-complete (via the 
+   *autocomplete* property). Forms interaction inside iframes will not be captured.
  * **Redirects** &mdash; Scribe will attempt to capture JavaScript redirects,
    but if the user is redirected to another site, and never returns, the 
    redirect may not be captured.
