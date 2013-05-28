@@ -383,11 +383,15 @@ if (typeof Scribe === 'undefined') {
       var acc = {};
 
       var setAcc = function(name, value) {
-        if (acc[name]) {
-          if (acc[name] instanceof Array) {
+        if (name === '') name = 'anonymous';
+
+        var oldValue = acc[name];
+
+        if (oldValue != null) {
+          if (oldValue instanceof Array) {
             acc[name].push(value);
           } else {
-            acc[name] = [acc[name], value];
+            acc[name] = [oldValue, value];
           }
         } else {
           acc[name] = value;
@@ -907,28 +911,32 @@ if (typeof Scribe === 'undefined') {
           handle(e);
         });
 
-        Events.onevent(document.body, 'keypress', true, function(e) {
-          var target = e.target;
-          var type = (target.type || '').toLowerCase();
-
-          if (target.form && (type === 'button' || type === 'submit')) {
-            console.log('form submitted');
-          }
-
+        Events.onevent(document.body, 'keypress', false, function(e) {
           if (e.keyCode == 13) {
             lastEnter = e;
           }
-        });
 
-        Events.onevent(document.body, 'click', true, function(e) {
           var target = e.target;
           var type = (target.type || '').toLowerCase();
 
           if (target.form && (type === 'button' || type === 'submit')) {
-            console.log('form submitted');
+            e.preventDefault();
+            target.form.submit();
+            // console.log('form submitted');
           }
+        });
 
+        Events.onevent(document.body, 'click', false, function(e) {
           lastClick = e;
+
+          var target = e.target;
+          var type = (target.type || '').toLowerCase();
+
+          if (target.form && (type === 'button' || type === 'submit')) {
+            //console.log('form submitted');
+            e.preventDefault();
+            target.form.submit();
+          }
         });
       });
 
@@ -943,6 +951,10 @@ if (typeof Scribe === 'undefined') {
       DomUtil.monitorElements('form', function(form) {
         var oldSubmit = form.submit;
 
+        form.browserSubmit = function() {
+          oldSubmit.apply(form);
+        };
+
         form.submit = function() {
           var cancel = false;
           var submitEvent = getFormSubmitEvent();
@@ -956,7 +968,7 @@ if (typeof Scribe === 'undefined') {
           }
           submitEvent.form = form;
           handle(submitEvent);
-          if (!cancel) oldSubmit.apply(form);
+          if (!cancel) form.browserSubmit();
         };
       });
 
@@ -1105,6 +1117,11 @@ if (typeof Scribe === 'undefined') {
         }
       });
 
+      // Track form submissions:
+      Events.onsubmit(function(e) {
+        self.trackLater('formSubmit', {form: DomUtil.getFormData(e.form)});
+      });
+
       // Load and send any pending events:
       this._loadOutbox();
       this._sendOutbox();
@@ -1116,7 +1133,7 @@ if (typeof Scribe === 'undefined') {
      * @memberof Scribe
      *
      * @param type  A simple String describing the category of data, such as
-     *              'profile' or 'history'.
+     *              'profile' or 'events'.
      */
     Scribe.prototype.getPath = function(type) {
       var now = new Date();
@@ -1298,15 +1315,6 @@ if (typeof Scribe === 'undefined') {
 
       this.track('pageview', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);
     };
-    
-    Events.onready(function() {
-      Events.onsubmit(function(e) {
-        console.log('Form submit canceled');
-        console.log(e);
-        console.log(DomUtil.getFormData(e.form));
-        e.preventDefault();
-      });
-    });
 
     return Scribe;
   })(Scribe);
