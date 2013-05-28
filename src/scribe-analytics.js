@@ -273,36 +273,6 @@ if (typeof Scribe === 'undefined') {
       return o;
     };
 
-    Util.toArray = function(alike) {
-      var arr = [], i, len = alike.length;
-
-      arr.length = alike.length;
-
-      for (i = 0; i < len; i++) {
-       arr[i] = alike[i];
-      }
-
-      return arr;
-    };
-
-    Util.arrContains = function(array, el) {
-      var i;
-      for (i = 0; i < array.length; i++) {
-        if (array[i] === el) return true;
-      }
-      return false;
-    };
-
-    Util.arrDiff = function(arr1, arr2) {
-      var i, el, diff = [];
-      for (i = 0; i < arr1.length; i++) {
-        el = arr1[i];
-
-        if (!Util.arrContains(arr2, el)) diff.push(el);
-      }
-      return diff;
-    };
-
     Util.genGuid = function() {
       var s4 = function() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -419,7 +389,40 @@ if (typeof Scribe === 'undefined') {
       };
     };
 
-    Util.getFormData = function(node) {
+    Util.parseUrl = function(url) {
+      var l = document.createElement("a");
+      l.href = url;
+      if (l.host === '') {
+        l.href = l.href;
+      }
+      return {
+        hash:     l.hash,
+        host:     l.host,
+        hostname: l.hostname,
+        pathname: l.pathname,
+        protocol: l.protocol,
+        query:    Util.parseQueryString(l.search)
+      };
+    };
+
+    Util.unparseUrl = function(url) {
+      return (url.protocol || '') + 
+             '//' + 
+             (url.host || '') + 
+             (url.pathname || '') +
+             Util.unparseQueryString(url.query) + 
+             (url.hash || '');
+    };
+
+    Util.padLeft = function(n, p, c) {
+      var pad_char = typeof c !== 'undefined' ? c : '0';
+      var pad = new Array(1 + p).join(pad_char);
+      return (pad + n).slice(-pad.length);
+    };
+
+    var DomUtil = {};
+
+    DomUtil.getFormData = function(node) {
       var acc = {};
 
       var setAcc = function(name, value) {
@@ -458,7 +461,7 @@ if (typeof Scribe === 'undefined') {
       return acc;
     };
 
-    Util.monitorElements = function(tagName, onnew, refresh) {
+    DomUtil.monitorElements = function(tagName, onnew, refresh) {
       refresh = refresh || 25;
 
       var checker = function() {
@@ -485,7 +488,7 @@ if (typeof Scribe === 'undefined') {
       setTimeout(checker, 0);
     };
 
-    Util.getDataset = function(node) {
+    DomUtil.getDataset = function(node) {
       if (typeof node.dataset !== 'undefined') {
         return Util.toObject(node.dataset);
       } else if (node.attributes) {
@@ -508,47 +511,16 @@ if (typeof Scribe === 'undefined') {
       } else return {};
     };
 
-    Util.parseUrl = function(url) {
-      var l = document.createElement("a");
-      l.href = url;
-      if (l.host === '') {
-        l.href = l.href;
-      }
-      return {
-        hash:     l.hash,
-        host:     l.host,
-        hostname: l.hostname,
-        pathname: l.pathname,
-        protocol: l.protocol,
-        query:    Util.parseQueryString(l.search)
-      };
-    };
-
-    Util.unparseUrl = function(url) {
-      return (url.protocol || '') + 
-             '//' + 
-             (url.host || '') + 
-             (url.pathname || '') +
-             Util.unparseQueryString(url.query) + 
-             (url.hash || '');
-    };
-
-    Util.padLeft = function(n, p, c) {
-      var pad_char = typeof c !== 'undefined' ? c : '0';
-      var pad = new Array(1 + p).join(pad_char);
-      return (pad + n).slice(-pad.length);
-    };
-
-    Util.getNodeDescriptor = function(node) {
+    DomUtil.getNodeDescriptor = function(node) {
       return {
         id:         node.id,
         selector:   Util.genCssSelector(node),
         title:      node.title === '' ? undefined : node.title,
-        data:       Util.getDataset(node)
+        data:       DomUtil.getDataset(node)
       };
     };
 
-    Util.getAncestors = function(node) {
+    DomUtil.getAncestors = function(node) {
       var cur = node;
       var result = [];
 
@@ -559,8 +531,6 @@ if (typeof Scribe === 'undefined') {
 
       return result;
     };
-
-    var DomUtil = {};
 
     DomUtil.simulateMouseEvent = function(element, eventName, options) {
       var eventMatchers = {
@@ -610,6 +580,32 @@ if (typeof Scribe === 'undefined') {
     };
 
     var ArrayUtil = {};
+
+    ArrayUtil.toArray = function(alike) {
+      var arr = [], i, len = alike.length;
+
+      arr.length = alike.length;
+
+      for (i = 0; i < len; i++) {
+       arr[i] = alike[i];
+      }
+
+      return arr;
+    };
+
+    ArrayUtil.contains = function(array, el) {
+      return ArrayUtil.exists(array, function(e){return e === el;});
+    };
+
+    ArrayUtil.diff = function(arr1, arr2) {
+      var i, el, diff = [];
+      for (i = 0; i < arr1.length; i++) {
+        el = arr1[i];
+
+        if (!ArrayUtil.contains(arr2, el)) diff.push(el);
+      }
+      return diff;
+    };
 
     ArrayUtil.exists = function(array, f) {
       for (var i = 0; i < array.length; i++) {
@@ -1023,28 +1019,28 @@ if (typeof Scribe === 'undefined') {
         // If it's a real node, get it so we can capture node data:
         var targetNode = document.getElementById(id);
 
-        var data = targetNode ? Util.getNodeDescriptor(targetNode) : {id: id};
+        var data = targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id};
 
         self.track('jump', {target: data});
       });
 
       // Track all clicks to the document:
       Events.onevent(document.body, 'click', true, function(e) {
-        var ancestors = Util.getAncestors(e.target);
+        var ancestors = DomUtil.getAncestors(e.target);
 
         // Do not track clicks on links, these are tracked separately!
         if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
-          self.track('click', {target: Util.getNodeDescriptor(e.target)});
+          self.track('click', {target: DomUtil.getNodeDescriptor(e.target)});
         }
       });
 
       // Track all engagement:
       Events.onengage(function(start, end) {
-        self.track('engage', {target: Util.getNodeDescriptor(start.target), duration: end.timeStamp - start.timeStamp});
+        self.track('engage', {target: DomUtil.getNodeDescriptor(start.target), duration: end.timeStamp - start.timeStamp});
       });
 
       // Track all clicks on links:
-      Util.monitorElements('a', function(el) {
+      DomUtil.monitorElements('a', function(el) {
         Events.onevent(el, 'click', true, function(e) {
           var target = e.target;
 
@@ -1060,7 +1056,7 @@ if (typeof Scribe === 'undefined') {
 
             var parsedUrl = Util.parseUrl(el.href);
             var value = {source: {url: Util.parseUrl(document.location)}, 
-                         target: Util.merge({url: parsedUrl}, Util.getNodeDescriptor(target))};
+                         target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
 
             if (parsedUrl.hostname === document.location.hostname) {
               // We are linking to a page on the same site. There's no need to send
@@ -1154,9 +1150,6 @@ if (typeof Scribe === 'undefined') {
             // See if it's a redirect (= different url) or reload (= same url):
             var sourceUrl = Util.unparseUrl(message.value.source.url);
             var targetUrl = Util.unparseUrl(message.value.target.url);
-
-            console.log('source url = ' + sourceUrl);
-            console.log('target url = ' + targetUrl);
 
             if (sourceUrl === targetUrl) {
               // It's a reload:
@@ -1296,7 +1289,7 @@ if (typeof Scribe === 'undefined') {
       Events.onsubmit(function(e) {
         console.log('Form submit');
         console.log(e);
-        console.log(Util.getFormData(e.form));
+        console.log(DomUtil.getFormData(e.form));
         e.preventDefault();
       });
     });
