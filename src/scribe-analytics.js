@@ -1192,16 +1192,12 @@ if (typeof Scribe === 'undefined') {
       
       this.context = Util.merge(context || {}, this.context);
 
-      props = props || {};
-
-      props.timestamp = props.timestamp || (new Date()).toISOString();
-
       this.tracker({
-        path:   this.getPath('profile'), 
-        value:  Util.jsonify(Util.merge(this.context, props)),
-        op:     'replace',
-        success: success,
-        failure: failure
+        path:     this.getPath('profile'), 
+        value:    this._createEvent(undefined, props),
+        op:       'replace',
+        success:  success,
+        failure:  failure
       });
     };
 
@@ -1275,19 +1271,17 @@ if (typeof Scribe === 'undefined') {
      *
      */
     Scribe.prototype.group = function(groupId, props, success, failure) {
-      this.userGroupId      = groupId;
-      this.userGroupProfile = props;
+      this.context.userGroupId      = groupId;
+      this.context.userGroupProfile = props;
 
-      props = props || {};
-
-      props.timestamp = props.timestamp || (new Date()).toISOString();
+      this.context = Util.merge(context || {}, this.context);
 
       this.tracker({
-        path:   this.getPath('groups'), 
-        value:  Util.jsonify(Util.merge(this.context, props)),
-        op:     'replace',
-        success: success,
-        failure: failure
+        path:     this.getPath('groups'), 
+        value:    this._createEvent(undefined, props),
+        op:       'replace',
+        success:  success,
+        failure:  failure
       });
     };
 
