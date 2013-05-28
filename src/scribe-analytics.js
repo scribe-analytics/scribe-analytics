@@ -335,6 +335,23 @@ if (typeof Scribe === 'undefined') {
       return pairs;
     };
 
+    Util.unparseQueryString = function(qs) {
+      var kvs = [], k, v;
+      for (k in qs) {
+        if (!qs.hasOwnProperty(k)) {
+          v = qs[k];
+
+          kvs.push(
+            encodeURIComponent(k) + '=' + encodeURIComponent(v)
+          );
+        }
+      }
+      var string = kvs.join('&');
+
+      if (string.length > 0) return '?' + string;
+      else return '';
+    };
+
     Util.size = function(v) {
       if (v === undefined) return 0;
       else if (v instanceof Array) return v.length;
@@ -507,6 +524,15 @@ if (typeof Scribe === 'undefined') {
       };
     };
 
+    Util.unparseUrl = function(url) {
+      return (url.protocol || '') + 
+             '//' + 
+             (url.host || '') + 
+             (url.pathname || '') +
+             Util.unparseQueryString(url.query) + 
+             (url.hash || '');
+    };
+
     Util.padLeft = function(n, p, c) {
       var pad_char = typeof c !== 'undefined' ? c : '0';
       var pad = new Array(1 + p).join(pad_char);
@@ -590,6 +616,14 @@ if (typeof Scribe === 'undefined') {
         if (f(array[i])) return true;
       }
       return false;
+    };
+
+    ArrayUtil.map = function(array, f) {
+      var r = [], i;
+      for (i = 0; i < array.length; i++) {
+        r.push(f(array[i]));
+      }
+      return r;
     };
 
     var Env = {};
@@ -1025,7 +1059,8 @@ if (typeof Scribe === 'undefined') {
             target.setAttribute('scribe_intercepted', 'true');            
 
             var parsedUrl = Util.parseUrl(el.href);
-            var value = {target: Util.merge({url: parsedUrl}, Util.getNodeDescriptor(target))};
+            var value = {source: {url: Util.parseUrl(document.location)}, 
+                         target: Util.merge({url: parsedUrl}, Util.getNodeDescriptor(target))};
 
             if (parsedUrl.hostname === document.location.hostname) {
               // We are linking to a page on the same site. There's no need to send
@@ -1060,7 +1095,7 @@ if (typeof Scribe === 'undefined') {
       // Track JavaScript-based redirects, which can occur without warning:
       Events.onexit(function(e) {
         if (self.javascriptRedirect) {
-          self.trackLater('redirect');
+          self.trackLater('redirect', {source: {url: Util.parseUrl(document.location)}});
         }
       });
 
@@ -1114,6 +1149,21 @@ if (typeof Scribe === 'undefined') {
         // because the URL is not known at the time of the redirect:
         if (message.value.event === 'redirect') {
           message.value.target = Util.merge(message.value.target || {}, {url: Util.parseUrl(document.location)});
+
+          try {
+            // See if it's a redirect (= different url) or reload (= same url):
+            var sourceUrl = Util.unparseUrl(message.value.source.url);
+            var targetUrl = Util.unparseUrl(message.value.target.url);
+
+            console.log('source url = ' + sourceUrl);
+            console.log('target url = ' + targetUrl);
+
+            if (sourceUrl === targetUrl) {
+              // It's a reload:
+              message.value.event = 'reload';
+            }
+          } catch (e) {
+          }
         }
 
         try {
