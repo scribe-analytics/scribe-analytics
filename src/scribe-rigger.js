@@ -21,7 +21,7 @@
     window.Scribe = definition();
   }
 })(function() {
-  //= date.js
+  //= ext/date.js
 
   //= ext/json2.js
 

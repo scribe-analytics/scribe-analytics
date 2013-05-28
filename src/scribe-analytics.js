@@ -1016,10 +1016,10 @@ if (typeof Scribe === 'undefined') {
 
           // TODO: Make sure the link is actually to a page.
           // It's a click, not a Javascript redirect:
-
-          var intercepted = target.getAttribute('scribe_intercepted');
-
           self.javascriptRedirect = false;
+          setTimeout(function(){self.javascriptRedirect = true;}, 500);
+
+          var intercepted = target.getAttribute('scribe_intercepted');          
 
           if (!intercepted) {
             target.setAttribute('scribe_intercepted', 'true');            
