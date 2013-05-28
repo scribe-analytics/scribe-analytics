@@ -36,7 +36,8 @@ Scribe Analytics tracks virtually every user interaction possible.
    the page is refreshed, either by the user or programmatically.
 
 Scribe Analytics will capture clicks on links and form interaction even when 
-those links and forms are added dynamically via JavaScript.
+those links and forms are added dynamically via JavaScript. This is extremely
+important in modern websites because so much content is inserted dynamically.
 
 # Getting Started
 
@@ -107,7 +108,7 @@ one of the supplied integrations (see [Integrations](#integrations) below).
 
 In Scribe Analytics, all data is organized into directories. Depending on the
 backend you are using, these directories might be mapped into collections,
-databases, or physical directories.
+databases and tables, or files stored inside physical directories.
 
 # Integrations
 
@@ -117,7 +118,7 @@ contributions from third-parties.
 ## Console
 
 The Console integration merely dumps information to the console. It's primary
-use case is debugging or exploring the capabilities of Scribe.
+use case is debugging or exploring the capabilities of Scribe Analytics.
 
     <script type="text/javascript" src="scribe-console.js"></script>
     ...
