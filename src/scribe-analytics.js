@@ -1014,7 +1014,12 @@ if (typeof Scribe === 'undefined') {
         Events.onevent(el, 'click', true, function(e) {
           var target = e.target;
 
+          // TODO: Make sure the link is actually to a page.
+          // It's a click, not a Javascript redirect:
+
           var intercepted = target.getAttribute('scribe_intercepted');
+
+          self.javascriptRedirect = false;
 
           if (!intercepted) {
             target.setAttribute('scribe_intercepted', 'true');            
@@ -1026,9 +1031,6 @@ if (typeof Scribe === 'undefined') {
               // We are linking to a page on the same site. There's no need to send
               // the event now, we can safely send it later:
               self.trackLater('click', value);
-
-              // It's a click, not a Javascript redirect:
-              self.javascriptRedirect = false;
             } else {
               e.preventDefault();
 
@@ -1048,6 +1050,8 @@ if (typeof Scribe === 'undefined') {
               );
             }
           } else {
+            // We already intercepted this, so we'll let it pass on through
+            // without modification:
             target.removeAttribute('scribe_intercepted');
           }
         });
