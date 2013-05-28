@@ -908,17 +908,31 @@ if (typeof Scribe === 'undefined') {
         });
 
         Events.onevent(document.body, 'keypress', true, function(e) {
+          var target = e.target;
+          var type = (target.type || '').toLowerCase();
+
+          if (target.form && (type === 'button' || type === 'submit')) {
+            console.log('form submitted');
+          }
+
           if (e.keyCode == 13) {
             lastEnter = e;
           }
         });
 
         Events.onevent(document.body, 'click', true, function(e) {
+          var target = e.target;
+          var type = (target.type || '').toLowerCase();
+
+          if (target.form && (type === 'button' || type === 'submit')) {
+            console.log('form submitted');
+          }
+
           lastClick = e;
         });
       });
 
-      var formSubmitEvent = function() {
+      var getFormSubmitEvent = function() {
         if (lastClick) {
           if (lastEnter) {
             return (lastClick.timeStamp > lastEnter.timeStamp) ? lastClick : lastEnter;
@@ -926,14 +940,12 @@ if (typeof Scribe === 'undefined') {
         } else return lastEnter;
       };
 
-      var forms = document.getElementsByTagName('form');
-
-      var createSubmitter = function(form) {
+      DomUtil.monitorElements('form', function(form) {
         var oldSubmit = form.submit;
 
-        return function() {
+        form.submit = function() {
           var cancel = false;
-          var submitEvent = formSubmitEvent();
+          var submitEvent = getFormSubmitEvent();
           if (submitEvent) {
             submitEvent.preventDefault = function() {
               cancel = true;
@@ -946,11 +958,7 @@ if (typeof Scribe === 'undefined') {
           handle(submitEvent);
           if (!cancel) oldSubmit.apply(form);
         };
-      };
-
-      for (var i = 0; i < forms.length; i++) {
-        form.submit = createSubmitter(forms[i]);
-      }
+      });
 
       return function(f) {
         handler.push(f);
@@ -971,14 +979,6 @@ if (typeof Scribe === 'undefined') {
         breakoutUsers:    false,
         breakoutVisitors: false
       }, this.options);
-
-      this.data = {
-        browser:      Env.getBrowserData(),
-        document:     Env.getDocumentData(),
-        screen:       Env.getScreenData(),
-        locale:       Env.getLocaleData(),
-        fingerprint:  Env.getFingerprint()
-      };
 
       // Always assume that Javascript is the culprit of leaving the page
       // (we'll detect and intercept clicks on links and buttons as best 
@@ -1301,7 +1301,7 @@ if (typeof Scribe === 'undefined') {
     
     Events.onready(function() {
       Events.onsubmit(function(e) {
-        console.log('Form submit');
+        console.log('Form submit canceled');
         console.log(e);
         console.log(DomUtil.getFormData(e.form));
         e.preventDefault();
