@@ -1162,6 +1162,7 @@ if (typeof Scribe === 'undefined') {
               message.value.event = 'reload';
             }
           } catch (e) {
+            window.onerror && window.onerror(e);
           }
         }
 
@@ -1169,6 +1170,7 @@ if (typeof Scribe === 'undefined') {
           this.tracker(message);
         } catch (e) {
           // Don't let one bad apple spoil the batch.
+          window.onerror && window.onerror(e);
         }
       }
       this.outbox = [];
@@ -1204,6 +1206,21 @@ if (typeof Scribe === 'undefined') {
     };
 
     /**
+     * A utility function to create an event. Adds timestamp, stores the name
+     * of the event and contextual data, and generates an idiomatic, trimmed 
+     * JSON objects that contains all event details.
+     */
+    Scribe.prototype._createEvent = function(name, props) {
+      props = props || {};
+
+      props.timestamp = props.timestamp || (new Date()).toISOString();
+      props.event     = name;
+      props.source    = Util.merge(props.source || {}, {url: Util.parseUrl(document.location)});
+
+      return Util.jsonify(Util.merge(this.context, props));
+    };
+
+    /**
      * Tracks an event now.
      *
      * @memberof Scribe
@@ -1214,15 +1231,9 @@ if (typeof Scribe === 'undefined') {
      *
      */
     Scribe.prototype.track = function(name, props, success, failure) {
-      props = props || {};
-
-      props.timestamp = props.timestamp || (new Date()).toISOString();
-      props.event     = name;
-      props.source    = Util.merge(props.source || {}, {url: Util.parseUrl(document.location.url)});
-
       this.tracker({
         path:    this.getPath('events'), 
-        value:   Util.jsonify(Util.merge(this.context, props)),
+        value:   this._createEvent(name, props),
         op:      'append',
         success: success,
         failure: failure
@@ -1230,7 +1241,11 @@ if (typeof Scribe === 'undefined') {
     };
 
     /**
-     * Tracks an event later.
+     * Tracks an event later. The event will only be tracked if the user visits
+     * some page on the same domain that has Scribe Analytics installed.
+     *
+     * This function is mainly useful when the user is leaving the page and 
+     * there is not enough time to capture some user behavior.
      *
      * @memberof Scribe
      *
@@ -1239,18 +1254,12 @@ if (typeof Scribe === 'undefined') {
      *
      */
     Scribe.prototype.trackLater = function(name, props) {
-      props = props || {};
-
-      props.timestamp = props.timestamp || (new Date()).toISOString();
-      props.event     = name;
-
-      var value = {
+      this.outbox.push({
         path:    this.getPath('events'), 
-        value:   Util.jsonify(Util.merge(this.context, props)),
+        value:   this._createEvent(name, props),
         op:      'append'
-      };
+      });
 
-      this.outbox.push(value);
       this._saveOutbox();
 
       return value;
