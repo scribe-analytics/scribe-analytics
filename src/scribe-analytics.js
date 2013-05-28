@@ -265,7 +265,7 @@ if (typeof Scribe === 'undefined') {
     Util.unparseQueryString = function(qs) {
       var kvs = [], k, v;
       for (k in qs) {
-        if (!qs.hasOwnProperty(k)) {
+        if (qs.hasOwnProperty(k)) {
           v = qs[k];
 
           kvs.push(
@@ -382,7 +382,7 @@ if (typeof Scribe === 'undefined') {
     DomUtil.getFormData = function(node) {
       var acc = {};
 
-      var setAcc = function(name, value) {
+      var setField = function(name, value) {
         if (name === '') name = 'anonymous';
 
         var oldValue = acc[name];
@@ -400,25 +400,25 @@ if (typeof Scribe === 'undefined') {
 
       for (var i = 0; i < node.elements.length; i++) {
         var child = node.elements[i];
-        var type = child.tagName.toUpperCase();
+        var nodeType = child.tagName.toLowerCase();
 
-        if (type == 'INPUT' || type == 'TEXTFIELD') {
+        if (nodeType == 'input' || nodeType == 'textfield') {
           // INPUT or TEXTFIELD element.
-          // Make sure auto-complete is not turned off:
+          // Make sure auto-complete is not turned off for the field:
           if ((child.getAttribute('autocomplete') || '').toLowerCase() !== 'off') {
             // Make sure it's not a password:
             if (child.type !== 'password') {
               // Make sure it's not a radio or it's a checked radio:
               if (child.type !== 'radio' || child.checked) {
-                setAcc(child.name, child.value);
+                setField(child.name, child.value);
               }
             }
           }
-        } else if (type == 'SELECT') {
+        } else if (nodeType == 'select') {
           // SELECT element:
           var option = child.options[child.selectedIndex];
 
-          setAcc(child.name, option.value);
+          setField(child.name, option.value);
         }
       }
 
@@ -911,29 +911,30 @@ if (typeof Scribe === 'undefined') {
           handle(e);
         });
 
+        // Intercept enter keypresses.
         Events.onevent(document.body, 'keypress', false, function(e) {
           if (e.keyCode == 13) {
+            // Enter keystroke detected
             lastEnter = e;
-          }
 
-          var target = e.target;
-          var type = (target.type || '').toLowerCase();
+            var target = e.target;
+            var form = target.form || (target.tagName === 'FORM' ? target : undefined);
 
-          if (target.form && (type === 'button' || type === 'submit')) {
-            e.preventDefault();
-            target.form.submit();
-            // console.log('form submitted');
+            if (form) {
+              e.preventDefault();
+              form.submit();
+            }
           }
         });
 
+        // Intercept clicks on submit buttons:
         Events.onevent(document.body, 'click', false, function(e) {
           lastClick = e;
 
           var target = e.target;
-          var type = (target.type || '').toLowerCase();
 
-          if (target.form && (type === 'button' || type === 'submit')) {
-            //console.log('form submitted');
+          if (target.form && (target.type || '').toLowerCase() === 'submit') {
+            // Submit button clicked:
             e.preventDefault();
             target.form.submit();
           }
@@ -957,18 +958,17 @@ if (typeof Scribe === 'undefined') {
 
         form.submit = function() {
           var cancel = false;
-          var submitEvent = getFormSubmitEvent();
-          if (submitEvent) {
-            submitEvent.preventDefault = function() {
-              cancel = true;
-            };
-
-          } else {
-            submitEvent = {};
-          }
+          var submitEvent = getFormSubmitEvent() || {};
+          submitEvent.preventDefault = function() {
+            cancel = true;
+          };
           submitEvent.form = form;
+          
           handle(submitEvent);
-          if (!cancel) form.browserSubmit();
+
+          if (!cancel) {
+            form.browserSubmit();
+          }
         };
       });
 
@@ -1168,11 +1168,17 @@ if (typeof Scribe === 'undefined') {
       for (var i = 0; i < this.outbox.length; i++) {
         var message = this.outbox[i];
 
-        // Specially modify redirect events to save the new URL,
-        // because the URL is not known at the time of the redirect:
-        if (message.value.event === 'redirect') {
-          message.value.target = Util.merge(message.value.target || {}, {url: Util.parseUrl(document.location)});
+        var event = message.value.event;
 
+        // Specially modify redirect, formSubmit events to save the new URL,
+        // because the URL is not known at the time of the event:
+        if (ArrayUtil.contains(['redirect', 'formSubmit'], event)) {
+          message.value.target = Util.merge(message.value.target || {}, {url: Util.parseUrl(document.location)});
+        }
+
+        // If source and target urls are the same, change redirect events
+        // to reload events:
+        if (event === 'redirect') {
           try {
             // See if it's a redirect (= different url) or reload (= same url):
             var sourceUrl = Util.unparseUrl(message.value.source.url);
