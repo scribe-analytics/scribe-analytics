@@ -1048,6 +1048,9 @@ if (typeof Scribe === 'undefined') {
         return visitorId;
       })();
 
+      this.context.userId      = JSON.parse(localStorage.getItem('scribe_uid')      || 'null');
+      this.context.userProfile = JSON.parse(localStorage.getItem('scribe_uprofile') || 'null');
+
       // Try to obtain geo location if possible:
       Geo.geoip(function(position) {
         self.context.geo = position;
@@ -1247,6 +1250,9 @@ if (typeof Scribe === 'undefined') {
     Scribe.prototype.identify = function(userId, props, context, success, failure) {
       this.context.userId       = userId;
       this.context.userProfile  = props;
+
+      localStorage.setItem('scribe_uid',      JSON.stringify(userId));
+      localStorage.setItem('scribe_uprofile', JSON.stringify(props || {}));
       
       this.context = Util.merge(context || {}, this.context);
 
