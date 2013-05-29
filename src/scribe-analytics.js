@@ -181,6 +181,33 @@ if (typeof Scribe === 'undefined') {
 
     var Util = {};
 
+    Util.copyFields = function(source, target) {
+      var createDelegate = function(source, value) {
+        return function() {
+          return value.apply(source, arguments);
+        };
+      };
+
+      target = target || {};
+
+      var key, value;
+
+      for (key in source) {
+        if (! /layerX|Y/.test(key)) {
+          value = source[key];
+
+          if (value instanceof Function) {
+            // Bind functions to object being copied (???):
+            target[key] = createDelegate(source, value);
+          } else {
+            target[key] = value;
+          }
+        }
+      }
+
+      return target;
+    };
+
     Util.merge = function(o1, o2) {
       var r, key, index;
       if (o1 === undefined) return o1;
@@ -265,7 +292,7 @@ if (typeof Scribe === 'undefined') {
     Util.unparseQueryString = function(qs) {
       var kvs = [], k, v;
       for (k in qs) {
-        if (qs.hasOwnProperty(k)) {
+        if (!qs.hasOwnProperty || qs.hasOwnProperty(k)) {
           v = qs[k];
 
           kvs.push(
@@ -767,11 +794,14 @@ if (typeof Scribe === 'undefined') {
         return function(e) {
           if (!e) e = window.event;
 
+          // Perform a shallow clone (Firefox bugs):
+          e = Util.copyFields(e);
+
           e.target    = e.target || e.srcElement;
-          e.timeStamp = e.timeStamp || (new Date()).getTime();
           e.keyCode   = e.keyCode || e.which || e.charCode;
           e.which     = e.which || e.keyCode;
           e.charCode  = (typeof e.which === "number") ? e.which : e.keyCode;
+          e.timeStamp = e.timeStamp || (new Date()).getTime();
 
           if (e.target.nodeType == 3) e.target = e.target.parentNode;
 
@@ -836,7 +866,7 @@ if (typeof Scribe === 'undefined') {
           var i, start;
 
           for (i = events.length - 1; i >= 0; i--) {
-            if (events[i].target == end.target) {
+            if (events[i].target === end.target) {
               start = events[i];
               ArrayUtil.removeElement(events, i);
               break;
@@ -846,7 +876,7 @@ if (typeof Scribe === 'undefined') {
           if (start !== undefined) {
             var delta = (end.timeStamp - start.timeStamp);
 
-            if (delta >= 750 /*self.options().minEngagement*/ && 
+            if (delta >= 1000 /*self.options().minEngagement*/ && 
                 delta <= 20000 /*self.options().maxEngagement*/)
               handler.dispatch(start, end);
           }
@@ -957,8 +987,9 @@ if (typeof Scribe === 'undefined') {
 
         form.submit = function() {
           var cancel = false;
-          
+
           var submitEvent = getFormSubmitEvent() || {};
+
           submitEvent.preventDefault = function() {
             cancel = true;
           };
