@@ -906,10 +906,9 @@ if (typeof Scribe === 'undefined') {
       });
 
       Events.onready(function() {
-        Events.onevent(document.body, 'submit', true, function(e) {
-          e.form = e.target;
+        /* Events.onevent(document.body, 'submit', true, function(e) {
           handle(e);
-        });
+        }); */
 
         // Intercept enter keypresses.
         Events.onevent(document.body, 'keypress', false, function(e) {
@@ -958,6 +957,7 @@ if (typeof Scribe === 'undefined') {
 
         form.submit = function() {
           var cancel = false;
+          
           var submitEvent = getFormSubmitEvent() || {};
           submitEvent.preventDefault = function() {
             cancel = true;

@@ -42,9 +42,11 @@ important in modern websites because so much content is inserted dynamically.
 # Getting Started
 
  1. Include the Scribe Analytics module inside your HTML pages.
-        <script type="application/javascript" src="scribe-analytics.js"></script>
+    
+    `<script type="application/javascript" src="scribe-analytics.js"></script>`
  2. Create a new Scribe Analytics object, specifying the configuration options.
-        var scribe = new Scribe({tracker: myTracker});
+
+    `var scribe = new Scribe({tracker: myTracker});`
  3. That's all! If your website supports login, you should also use the 
     `Scribe.identify()` method. If you want to track custom events, you can use 
     `Scribe.track()`.
@@ -130,7 +132,7 @@ use case is debugging or exploring the capabilities of Scribe Analytics.
 ## Precog
 
 The Precog integration dumps all information into the [Precog analytics store](http://precog.com),
-where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or other tools.
+where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or the Precog API.
 
     <script type="text/javascript" src="scribe-precog.js"></script>
     ...
