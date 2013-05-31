@@ -43,10 +43,14 @@ important in modern websites because so much content is inserted dynamically.
 
  1. Include the Scribe Analytics module inside your HTML pages.
     
-    `<script type="application/javascript" src="scribe-analytics.js"></script>`
+    ```html
+    <script type="application/javascript" src="scribe-analytics.js"></script>
+    ```
  2. Create a new Scribe Analytics object, specifying the configuration options.
 
-    `var scribe = new Scribe({tracker: myTracker});`
+    ```javascript
+    var scribe = new Scribe({tracker: myTracker});`
+    ```
  3. That's all! If your website supports login, you should also use the 
     `Scribe.identify()` method. If you want to track custom events, you can use 
     `Scribe.track()`.
@@ -90,13 +94,15 @@ When creating a Scribe Analytics object, the following options are supported:
 The only option required to create a Scribe object is a *tracker*. A 
 tracker is a function which accepts an object of the following form:
 
-    {
-      "path":    (A String),
-      "value":   (A JSON Value),
-      "op":      (Either "replace" or "append"),
-      "success": (A success callback),
-      "failure": (A failure callback)
-    }
+```json
+{
+  "path":    "(A String)",
+  "value":   "(A JSON Value)",
+  "op":      "(Either 'replace' or 'append')",
+  "success": "(A success callback)",
+  "failure": "(A failure callback)"
+}
+```
 
 The *path* field contains information on how the data should be organized. The 
 *value* field contains the raw data to store. Finally, the *op* field denotes
@@ -125,24 +131,28 @@ contributions from third-parties.
 The Console integration merely dumps information to the console. It's primary
 use case is debugging or exploring the capabilities of Scribe Analytics.
 
-    <script type="text/javascript" src="scribe-console.js"></script>
-    ...
-    var scribe = new Scribe(new ScribeConsoleTracker());
+```html
+<script type="text/javascript" src="scribe-console.js"></script>
+...
+var scribe = new Scribe(new ScribeConsoleTracker());
+```
 
 ## Precog
 
 The Precog integration dumps all information into the [Precog analytics store](http://precog.com),
 where it can then be analyzed by [Labcoat](http://labcoat.precog.com) or the Precog API.
 
-    <script type="text/javascript" src="scribe-precog.js"></script>
-    ...
-    var scribe =  new Scribe(
-                    new ScribePrecogTracker({
-                      apiKey:           apiKey, 
-                      analyticsService: analyticsServiceUrl,
-                      rootPath:         rootPath
-                    })
-                  );
+```html
+<script type="text/javascript" src="scribe-precog.js"></script>
+...
+var scribe =  new Scribe(
+                new ScribePrecogTracker({
+                  apiKey:           apiKey, 
+                  analyticsService: analyticsServiceUrl,
+                  rootPath:         rootPath
+                })
+              );
+```
 
 ## Segment.IO
 
