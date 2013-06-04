@@ -929,78 +929,39 @@ if (typeof Scribe === 'undefined') {
 
     Events.onsubmit = (function() {
       var handler = new Handler();
-      var lastClick, lastEnter;
 
       var handle = Util.undup(function(e) {
         handler.dispatch(e);
       });
 
       Events.onready(function() {
-        /* Events.onevent(document.body, 'submit', true, function(e) {
+        Events.onevent(document.body, 'submit', true, function(e) {
           handle(e);
-        }); */
+        });
 
-        // Intercept enter keypresses.
+        // Intercept enter keypresses which will submit the form in most browsers.
         Events.onevent(document.body, 'keypress', false, function(e) {
           if (e.keyCode == 13) {
-            // Enter keystroke detected
-            lastEnter = e;
-
             var target = e.target;
-            var form = target.form || (target.tagName === 'FORM' ? target : undefined);
+            var form = target.form;
 
             if (form) {
-              e.preventDefault();
-              form.submit();
+              e.form = form;
+              handle(e);
             }
           }
         });
 
         // Intercept clicks on submit buttons:
         Events.onevent(document.body, 'click', false, function(e) {
-          lastClick = e;
-
           var target = e.target;
+          var form = target.form;
 
-          if (target.form && (target.type || '').toLowerCase() === 'submit') {
-            // Submit button clicked:
-            e.preventDefault();
-            target.form.submit();
+          if (form && (target.type || '').toLowerCase() === 'submit') {
+            e.form = form;
+            handle(e);
           }
         });
-      });
-
-      var getFormSubmitEvent = function() {
-        if (lastClick) {
-          if (lastEnter) {
-            return (lastClick.timeStamp > lastEnter.timeStamp) ? lastClick : lastEnter;
-          } else return lastClick;
-        } else return lastEnter;
-      };
-
-      DomUtil.monitorElements('form', function(form) {
-        var oldSubmit = form.submit;
-
-        form.browserSubmit = function() {
-          oldSubmit.apply(form);
-        };
-
-        form.submit = function() {
-          var cancel = false;
-
-          var submitEvent = getFormSubmitEvent() || {};
-
-          submitEvent.preventDefault = function() {
-            cancel = true;
-          };
-          submitEvent.form = form;
-          
-          handle(submitEvent);
-
-          if (!cancel) {
-            form.browserSubmit();
-          }
-        };
       });
 
       return function(f) {
