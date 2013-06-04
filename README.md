@@ -49,7 +49,7 @@ important in modern websites because so much content is inserted dynamically.
  2. Create a new Scribe Analytics object, specifying the configuration options.
 
     ```javascript
-    var scribe = new Scribe({tracker: myTracker});`
+    var scribe = new Scribe({tracker: myTracker});
     ```
  3. That's all! If your website supports login, you should also use the 
     `Scribe.identify()` method. If you want to track custom events, you can use 
@@ -179,7 +179,7 @@ different backends, which can be configured on the Segment IO dashboard.
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+    DISCLAIMED. IN NO EVENT SHALL SCRIBE ANALYTICS TEAM BE LIABLE FOR ANY
     DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
     (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND

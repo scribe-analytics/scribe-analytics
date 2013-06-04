@@ -785,7 +785,7 @@ if (typeof Scribe === 'undefined') {
     var Events = {};
 
     Events.onready = function(f) {
-      if (document.body) f();
+      if (document.body != null) f();
       else setTimeout(function(){Events.onready(f);}, 10);
     };
 
@@ -876,9 +876,9 @@ if (typeof Scribe === 'undefined') {
           if (start !== undefined) {
             var delta = (end.timeStamp - start.timeStamp);
 
-            if (delta >= 1000 /*self.options().minEngagement*/ && 
-                delta <= 20000 /*self.options().maxEngagement*/)
+            if (delta >= 1000 && delta <= 20000) {
               handler.dispatch(start, end);
+            }
           }
         });
       });
@@ -1016,8 +1016,6 @@ if (typeof Scribe === 'undefined') {
       var self = this;
 
       this.options = Util.merge({
-        minEngagement:    250,
-        maxEngagement:    20000,
         bucket:           'none',
         breakoutUsers:    false,
         breakoutVisitors: false
@@ -1056,10 +1054,21 @@ if (typeof Scribe === 'undefined') {
         self.context.geo = position;
       });
 
-      // Track page view, but only after the DOM has loaded:
       Events.onready(function() {
-        // Track the initial pageview:
+        // Track page view, but only after the DOM has loaded:
         self.pageview();
+
+        // Track all clicks to the document:
+        Events.onevent(document.body, 'click', true, function(e) {
+          var ancestors = DomUtil.getAncestors(e.target);
+
+          // Do not track clicks on links, these are tracked separately!
+          if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
+            self.track('click', {
+              target: DomUtil.getNodeDescriptor(e.target)
+            });
+          }
+        });
       });
 
       // Track hash changes:
@@ -1074,18 +1083,6 @@ if (typeof Scribe === 'undefined') {
         self.track('jump', {
           target: data
         });
-      });
-
-      // Track all clicks to the document:
-      Events.onevent(document.body, 'click', true, function(e) {
-        var ancestors = DomUtil.getAncestors(e.target);
-
-        // Do not track clicks on links, these are tracked separately!
-        if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
-          self.track('click', {
-            target: DomUtil.getNodeDescriptor(e.target)
-          });
-        }
       });
 
       // Track all engagement:
@@ -1153,8 +1150,11 @@ if (typeof Scribe === 'undefined') {
 
       // Track form submissions:
       Events.onsubmit(function(e) {
-        self.trackLater('formSubmit', {form: DomUtil.getFormData(e.form)});
+        self.trackLater('formsubmit', {form: DomUtil.getFormData(e.form)});
       });
+
+      // Track form abandonments:
+
 
       // Load and send any pending events:
       this._loadOutbox();
