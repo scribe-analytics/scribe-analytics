@@ -359,17 +359,17 @@ if (typeof Scribe === 'undefined') {
       cutoff = cutoff || 250;
 
       var lastInvoked = 0;
-      return function(e) {
+      return function() {
         var curTime = (new Date()).getTime();
         var delta = curTime - lastInvoked;
 
         if (delta > cutoff) {
           lastInvoked = curTime;
 
-          var result = f.apply(this, arguments);
-
-          return result;
-        } return undefined;
+          return f.apply(this, arguments);
+        } else {
+          return undefined;
+        }
       };
     };
 
@@ -955,10 +955,10 @@ if (typeof Scribe === 'undefined') {
         // Intercept clicks on any buttons:
         Events.onevent(document.body, 'click', false, function(e) {
           var target = e.target;
-          var form = target.form;
-
-          if (form) { //} && (target.type || '').toLowerCase() === 'submit') {
-            e.form = form;
+          var targetType = (target.type || '').toLowerCase();
+          
+          if (target.form && (targetType === 'submit' || targetType === 'button')) {
+            e.form = target.form;
             handle(e);
           }
         });
