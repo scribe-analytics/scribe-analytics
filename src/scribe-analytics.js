@@ -398,6 +398,26 @@ if (typeof Scribe === 'undefined') {
              (url.hash || '');
     };
 
+    Util.isSamePage = function(url1, url2) {
+      url1 = url1 instanceof String ? Util.parseUrl(url1) : url1;
+      url2 = url2 instanceof String ? Util.parseUrl(url2) : url2;
+
+      return url1.protocol === url2.protocol &&
+             url1.host     === url2.host &&
+             url1.pathname === url2.pathname &&
+             Util.unparseQueryString(url1.query) === Util.unparseQueryString(url2.query);
+    };
+
+    Util.qualifyUrl = function(url) {
+      var escapeHTML = function(s) {
+        return s.split('&').join('&amp;').split('<').join('&lt;').split('"').join('&quot;');
+      };
+
+      var el= document.createElement('div');
+      el.innerHTML= '<a href="'+escapeHTML(url)+'">x</a>';
+      return el.firstChild.href;
+    };
+
     Util.padLeft = function(n, p, c) {
       var pad_char = typeof c !== 'undefined' ? c : '0';
       var pad = new Array(1 + p).join(pad_char);
@@ -1032,6 +1052,8 @@ if (typeof Scribe === 'undefined') {
         });
       });
 
+      self.oldHash = document.location.hash;
+
       // Track hash changes:
       Events.onhashchange(function(e) {
         var id = e.hash.substring(1);
@@ -1042,8 +1064,15 @@ if (typeof Scribe === 'undefined') {
         var data = targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id};
 
         self.track('jump', {
-          target: data
+          target: data,
+          source: {
+            url: {
+              hash: self.oldHash // Override the hash
+            }
+          }
         });
+
+        self.oldHash = e.hash;
       });
 
       // Track all engagement:
@@ -1064,19 +1093,22 @@ if (typeof Scribe === 'undefined') {
           self.javascriptRedirect = false;
           setTimeout(function(){self.javascriptRedirect = true;}, 500);
 
-          var intercepted = target.getAttribute('scribe_intercepted');          
+          var parsedUrl = Util.parseUrl(el.href);
+          var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
 
-          if (!intercepted) {
-            target.setAttribute('scribe_intercepted', 'true');            
+          if (Util.isSamePage(parsedUrl, document.location)) {
+            // User is jumping around the same page. We don't track this here,
+            // because it will be tracked by onhashchange.
+          } else if (parsedUrl.hostname === document.location.hostname) {
+            // We are linking to a page on the same site. There's no need to send
+            // the event now, we can safely send it later:
+            self.trackLater('click', value);
+          } else {
+            var intercepted = target.getAttribute('scribe_intercepted');          
 
-            var parsedUrl = Util.parseUrl(el.href);
-            var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
+            if (!intercepted) {
+              target.setAttribute('scribe_intercepted', 'true');
 
-            if (parsedUrl.hostname === document.location.hostname) {
-              // We are linking to a page on the same site. There's no need to send
-              // the event now, we can safely send it later:
-              self.trackLater('click', value);
-            } else {
               e.preventDefault();
 
               // We are linking to a page that is not on this site. So we first
@@ -1093,12 +1125,12 @@ if (typeof Scribe === 'undefined') {
                   DomUtil.simulateMouseEvent(target, 'click');
                 }
               );
+            } else {
+              // We already intercepted this, so we'll let it pass on through
+              // without modification:
+              target.removeAttribute('scribe_intercepted');
             }
-          } else {
-            // We already intercepted this, so we'll let it pass on through
-            // without modification:
-            target.removeAttribute('scribe_intercepted');
-          }
+          } 
         });
       });
 
@@ -1244,7 +1276,7 @@ if (typeof Scribe === 'undefined') {
 
       props.timestamp = props.timestamp || (new Date()).toISOString();
       props.event     = name;
-      props.source    = Util.merge(props.source || {}, {url: Util.parseUrl(document.location)});
+      props.source    = Util.merge({url: Util.parseUrl(document.location)}, props.source || {});
 
       return Util.jsonify(Util.merge(this.context, props));
     };
