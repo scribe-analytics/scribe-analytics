@@ -717,7 +717,7 @@ if (typeof Scribe === 'undefined') {
 
       var gmtOffset, timezone;
 
-      if (results.length >= 3) {
+      if (results && results.length >= 3) {
         gmtOffset = results[1];
         timezone  = results[2];
       }
@@ -952,12 +952,12 @@ if (typeof Scribe === 'undefined') {
           }
         });
 
-        // Intercept clicks on submit buttons:
+        // Intercept clicks on any buttons:
         Events.onevent(document.body, 'click', false, function(e) {
           var target = e.target;
           var form = target.form;
 
-          if (form && (target.type || '').toLowerCase() === 'submit') {
+          if (form) { //} && (target.type || '').toLowerCase() === 'submit') {
             e.form = form;
             handle(e);
           }
@@ -1111,7 +1111,15 @@ if (typeof Scribe === 'undefined') {
 
       // Track form submissions:
       Events.onsubmit(function(e) {
-        self.trackLater('formsubmit', {form: DomUtil.getFormData(e.form)});
+        if (e.form) {
+          if (!e.form.formId) {
+            e.form.formId = Util.genGuid();
+          }
+
+          self.trackLater('formsubmit', {
+            form: Util.merge({formId: e.form.formId}, DomUtil.getFormData(e.form))
+          });
+        }
       });
 
       // Track form abandonments:
@@ -1282,8 +1290,6 @@ if (typeof Scribe === 'undefined') {
       });
 
       this._saveOutbox();
-
-      return value;
     };
 
     /**
