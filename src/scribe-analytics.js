@@ -189,7 +189,7 @@ if (typeof Scribe === 'undefined') {
         if (! /layerX|Y/.test(key)) {
           value = source[key];
 
-          if (value instanceof Function) {
+          if (typeof value === 'function') {
             // Bind functions to object being copied (???):
             target[key] = createDelegate(source, value);
           } else {
@@ -1102,7 +1102,7 @@ if (typeof Scribe === 'undefined') {
             // client prevents the default action and the hash doesn't change
             // (otherwise it would be tracked by onhashchange):
             self.oldHash = undefined;
-            
+
             trackJump(document.location.hash);
           } else if (parsedUrl.hostname === document.location.hostname) {
             // We are linking to a page on the same site. There's no need to send
