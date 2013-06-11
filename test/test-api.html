@@ -8,6 +8,12 @@
     <script src="../integrations/console/scribe-console.js"></script>
     <script src="../integrations/precog/scribe-precog.js"></script>
     <script src="test-api.js"></script>
+    <script type="text/javascript">
+        var preventDefault = function(e) {
+            e.preventDefault();
+            return false;
+        }
+    </script>
   </head>
   <body>
     <h1 id="nodeunit-header">Scribe Analytics Test Suite</h1>
@@ -25,6 +31,8 @@
     </form>
 
     <a href="#nodeunit-header"><h2>Jump to Top</h2></a>
+
+    <a href="#nodeunit-header" onclick="preventDefault"><h2>Jump to Top (Prevent Default)</h2></a>
 
     <script>
         function escapeHTML(html) {

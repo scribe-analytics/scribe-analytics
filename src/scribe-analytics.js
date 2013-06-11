@@ -169,13 +169,6 @@ if (typeof Scribe === 'undefined') {
           timeout:                  2000,
           w3c_geolocation_disabled: true
         });
-      } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          success({
-            latitude:   position.latitude,
-            longitude:  position.longitude
-          });
-        }, failure, {maximumAge:Infinity, timeout:0});
       }
     };
 
@@ -1054,25 +1047,33 @@ if (typeof Scribe === 'undefined') {
 
       self.oldHash = document.location.hash;
 
+      var trackJump = function(hash) {
+        if (self.oldHash !== hash) { // Guard against tracking more than once
+          var id = hash.substring(1);
+
+          // If it's a real node, get it so we can capture node data:
+          var targetNode = document.getElementById(id);
+
+          var data = Util.merge({
+            url: Util.parseUrl(document.location)
+          }, targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id});
+
+          self.track('jump', {
+            target: data,
+            source: {
+              url: Util.merge(Util.parseUrl(document.location), {
+                hash: self.oldHash // Override the hash
+              })
+            }
+          });
+
+          self.oldHash = hash;
+        }
+      };
+
       // Track hash changes:
       Events.onhashchange(function(e) {
-        var id = e.hash.substring(1);
-
-        // If it's a real node, get it so we can capture node data:
-        var targetNode = document.getElementById(id);
-
-        var data = targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id};
-
-        self.track('jump', {
-          target: data,
-          source: {
-            url: {
-              hash: self.oldHash // Override the hash
-            }
-          }
-        });
-
-        self.oldHash = e.hash;
+        trackJump(e.hash);
       });
 
       // Track all engagement:
@@ -1097,8 +1098,12 @@ if (typeof Scribe === 'undefined') {
           var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
 
           if (Util.isSamePage(parsedUrl, document.location)) {
-            // User is jumping around the same page. We don't track this here,
-            // because it will be tracked by onhashchange.
+            // User is jumping around the same page. Track here in case the 
+            // client prevents the default action and the hash doesn't change
+            // (otherwise it would be tracked by onhashchange):
+            self.oldHash = undefined;
+            
+            trackJump(document.location.hash);
           } else if (parsedUrl.hostname === document.location.hostname) {
             // We are linking to a page on the same site. There's no need to send
             // the event now, we can safely send it later:
