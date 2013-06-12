@@ -263,19 +263,23 @@ if (typeof Scribe === 'undefined') {
 
     Util.parseQueryString = function(qs) {
       var pairs = {};
-      var query = window.location.search.substring(1);
-      if (query.length > 0) {
-        var vars = query.split('&');
-        for (var i = 0; i < vars.length; i++) {
-          if (vars[i].length > 0) {
-            var pair = vars[i].split('=');
 
-            try {            
-              var name = decodeURIComponent(pair[0]);
-              var value = (pair.length > 1) ? decodeURIComponent(pair[1]) : 'true';
+      if (qs.length > 0) {
+        var query = qs.charAt(0) === '?' ? qs.substring(1) : qs;
 
-              pairs[name] = value; 
-            } catch (e) { }
+        if (query.length > 0) {
+          var vars = query.split('&');
+          for (var i = 0; i < vars.length; i++) {
+            if (vars[i].length > 0) {
+              var pair = vars[i].split('=');
+
+              try {            
+                var name = decodeURIComponent(pair[0]);
+                var value = (pair.length > 1) ? decodeURIComponent(pair[1]) : 'true';
+
+                pairs[name] = value; 
+              } catch (e) { }
+            }
           }
         }
       }
@@ -391,14 +395,50 @@ if (typeof Scribe === 'undefined') {
              (url.hash || '');
     };
 
+    Util.equals = function(v1, v2) {
+      var leftEqualsObject = function(o1, o2) {
+        for (var k in o1) {
+          if (!o1.hasOwnProperty || o1.hasOwnProperty(k)) {
+            if (!Util.equals(o1[k], o2[k])) return false;
+          }
+        }
+        return true;
+      };
+
+      if (v1 instanceof Array) {
+        if (v2 instanceof Array) {
+          if (v1.length !== v2.length) return false;
+
+          for (var i = 0; i < v1.length; i++) {
+            if (!Util.equals(v1[i], v2[i])) {
+              return false;
+            }
+          }
+
+          return true;
+        } else {
+          return false;
+        } 
+      } else if (v1 instanceof Object) {
+        if (v2 instanceof Object) {
+          return leftEqualsObject(v1, v2) && leftEqualsObject(v2, v1);
+        } else {
+          return false;
+        }
+      } else {
+        return v1 === v2;
+      }
+    };
+
     Util.isSamePage = function(url1, url2) {
       url1 = url1 instanceof String ? Util.parseUrl(url1) : url1;
       url2 = url2 instanceof String ? Util.parseUrl(url2) : url2;
 
+      // Ignore the hash when comparing to see if two pages represent the same resource:
       return url1.protocol === url2.protocol &&
              url1.host     === url2.host &&
              url1.pathname === url2.pathname &&
-             Util.unparseQueryString(url1.query) === Util.unparseQueryString(url2.query);
+             Util.equals(url1.query, url2.query);
     };
 
     Util.qualifyUrl = function(url) {
