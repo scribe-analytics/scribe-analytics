@@ -818,7 +818,15 @@ if (typeof Scribe === 'undefined') {
 
           if (e.target && e.target.nodeType == 3) e.target = e.target.parentNode;
 
-          return f(e);
+          var retVal;
+
+          if (!e.preventDefault) {
+            e.preventDefault = function() {
+              retVal = false;
+            };
+          }
+
+          return f(e) || retVal;
         };
       };
 
