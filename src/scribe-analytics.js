@@ -1150,7 +1150,7 @@ if (typeof Scribe === 'undefined') {
           var parsedUrl = Util.parseUrl(el.href);
           var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
 
-          if (Util.isSamePage(parsedUrl, document.location)) {
+          if (Util.isSamePage(parsedUrl, document.location.href)) {
             // User is jumping around the same page. Track here in case the 
             // client prevents the default action and the hash doesn't change
             // (otherwise it would be tracked by onhashchange):
