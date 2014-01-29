@@ -1,6 +1,6 @@
 {
   "name": "scribe-analytics",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/scribe-analytics/scribe-analytics",
   "authors": [
     "John A. De Goes"
@@ -17,6 +17,12 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "integrations",
+    "libs",
+    "src",
+    "*.md",
+    "Gruntfile.js",
+    "package.json",
+    "bower.json"
   ]
 }
