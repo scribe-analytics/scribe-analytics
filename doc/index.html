@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Index</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Index</h1>
+    
+    
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Scribe Analytics</h1>
+
+<p>Scribe Analytics is a client-side JavaScript library designed to capture all interaction data into a user-defined, pluggable back-end.</p>
+
+<p>The driving philosophy behind Scribe Analytics is that you can&#39;t ask questions over data that you didn&#39;t capture.</p>
+
+<p>So Scribe captures everything. All the time. With no custom coding required.</p>
+
+<h1>Scope</h1>
+
+<p>Scribe Analytics tracks virtually every user interaction possible.</p>
+
+<ul><li><strong>Page views</strong> &amp;mdash; Every page view event is captured, together with 
+information on the browser, referrer, platform, and much more.</li><li><strong>Clicks</strong> &amp;mdash; Every click event will be captured, including information
+on the element that is clicked (id, title, data attributes, unique css 
+selector). If a link is clicked, then then information on the link target
+will be captured, as well.</li><li><strong>Engagements</strong> &amp;mdash; Every engagement with any HTML element in a document
+is captured, including information on the element (id, title, data 
+attributes, unique css selector). Engagement is defined as a mouseover 
+inside a certain time window (e.g. 1 and 20 seconds). Mouseovers outside
+the time window are not counted as engagements.</li><li><strong>Jumps</strong> &amp;mdash; Every jump (defined as navigation inside a page which 
+results in a change to the URL hash) is captured, including information on 
+the element that was jumped to (id, title, data attributes, unique css 
+selector).</li><li><strong>Forms</strong> &amp;mdash; All form interaction, including form abandonment and form
+submission, is captured, including details on all form fields that are not 
+marked as passwords and which have not turned off auto-complete (via the 
+<em>autocomplete</em> property). Forms interaction inside iframes will not be captured.</li><li><strong>Redirects</strong> &amp;mdash; Scribe will attempt to capture JavaScript redirects,
+but if the user is redirected to another site, and never returns, the 
+redirect may not be captured.</li><li><strong>Reloads</strong> &amp;mdash; All page reloads are captured. A reload occurs whenever
+the page is refreshed, either by the user or programmatically.</li></ul>
+
+<p>Scribe Analytics will capture clicks on links and form interaction even when 
+those links and forms are added dynamically via JavaScript. This is extremely
+important in modern websites because so much content is inserted dynamically.</p>
+
+<h1>Getting Started</h1>
+
+<ol><li><p>Include the Scribe Analytics module inside your HTML pages.</p><p><code>html
+&lt;script type=&quot;application/javascript&quot; src=&quot;scribe-analytics.js&quot;&gt;&lt;/script&gt;
+</code></p></li><li><p>Create a new Scribe Analytics object, specifying the configuration options.</p><p><code>javascript
+var scribe = new Scribe({tracker: myTracker});
+</code></p></li><li><p>That&#39;s all! If your website supports login, you should also use the 
+<code>Scribe.identify()</code> method. If you want to track custom events, you can use 
+<code>Scribe.track()</code>.</p><p>While we recommend using <code>Scribe.identify()</code> to identify your users, in most
+cases there is no need to manually track custom events.</p></li></ol>
+
+<p>When you create the Scribe Analytics object, you must specify the configuration 
+options. These options are detailed in the <a href="#configuration">Configuration</a> section.</p>
+
+<h1>Configuration</h1>
+
+<p>When creating a Scribe Analytics object, the following options are supported:</p>
+
+<ul><li><p><strong>tracker</strong> &amp;mdash; The tracker to use for storing data. See <a href="#trackers">Trackers</a> for more
+information on this option.</p><p>This is a required field. There is no default.</p></li><li><p><strong>bucket</strong> &amp;mdash; Determines whether or not to include time information in the 
+path where events are stored. Must be equal to &#39;none&#39;, &#39;daily&#39;, &#39;monthly&#39;, 
+or &#39;yearly&#39;. If you choose <em>monthly</em>, for example, then events will be 
+organized into paths that contain the year and month in which the event
+occurred (e.g. &#39;/2013-12/&#39;).</p><p>The default for this option is &#39;none&#39;.</p></li><li><p><strong>breakoutUsers</strong> &amp;mdash; Determines whether or not to include user ID information
+in the path where events are stored. If you set this field to <em>true</em>, then 
+events for identified users will be organized into paths like &#39;/users/123/&#39;,
+where 123 is a user ID.</p><p>The default for this option is <em>false</em>.</p></li><li><p><strong>breakoutVisitors</strong> &amp;mdash; Determines whether or not to include visitor ID 
+information in the path where events are stored. If you set this field to
+<em>true</em>, then events for anonymous visitors will be organized into paths like
+&#39;/visitors/123&#39;, where 123 is a visitor ID.</p><p>The default for this option is <em>false</em>.</p></li></ul>
+
+<h2>Trackers</h2>
+
+<p>The only option required to create a Scribe object is a <em>tracker</em>. A 
+tracker is a function which accepts an object of the following form:</p>
+
+<p><code>json
+{
+  &quot;path&quot;:    &quot;(A String)&quot;,
+  &quot;value&quot;:   &quot;(A JSON Value)&quot;,
+  &quot;op&quot;:      &quot;(Either &#39;replace&#39; or &#39;append&#39;)&quot;,
+  &quot;success&quot;: &quot;(A success callback)&quot;,
+  &quot;failure&quot;: &quot;(A failure callback)&quot;
+}
+</code></p>
+
+<p>The <em>path</em> field contains information on how the data should be organized. The 
+<em>value</em> field contains the raw data to store. Finally, the <em>op</em> field denotes
+whether the data should replace the existing data at that path, or append to the
+data stored at that path.</p>
+
+<p>The <em>success</em> and <em>failure</em> fields, if present, are functions that should be 
+called on success or failure, respectively.</p>
+
+<p>In most cases, you won&#39;t have to create your own tracker because you can use
+one of the supplied integrations (see <a href="#integrations">Integrations</a> below).</p>
+
+<h3>Paths</h3>
+
+<p>In Scribe Analytics, all data is organized into directories. Depending on the
+backend you are using, these directories might be mapped into collections,
+databases and tables, or files stored inside physical directories.</p>
+
+<h1>Integrations</h1>
+
+<p>Scribe Analytics contains a growing number of integrations. We welcome 
+contributions from third-parties.</p>
+
+<h2>Console</h2>
+
+<p>The Console integration merely dumps information to the console. It&#39;s primary
+use case is debugging or exploring the capabilities of Scribe Analytics.</p>
+
+<p><code>html
+&lt;script type=&quot;text/javascript&quot; src=&quot;scribe-console.js&quot;&gt;&lt;/script&gt;
+...
+var scribe = new Scribe(new ScribeConsoleTracker());
+</code></p>
+
+<h2>Precog</h2>
+
+<p>The Precog integration dumps all information into the <a href="http://precog.com">Precog analytics store</a>,
+where it can then be analyzed by <a href="http://labcoat.precog.com">Labcoat</a> or the Precog API.</p>
+
+<p><code>html
+&lt;script type=&quot;text/javascript&quot; src=&quot;scribe-precog.js&quot;&gt;&lt;/script&gt;
+...
+var scribe =  new Scribe(
+                new ScribePrecogTracker({
+                  apiKey:           apiKey, 
+                  analyticsService: analyticsServiceUrl,
+                  rootPath:         rootPath
+                })
+              );
+</code></p>
+
+<h2>Segment.IO</h2>
+
+<p><em>Coming Soon</em> &amp;mdash; The Segment IO integration can direct data to a variety of 
+different backends, which can be configured on the Segment IO dashboard.</p>
+
+<h1>License</h1>
+
+<pre><code>Copyright (c) 2013, Scribe Analytics Team
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+  * Neither the name of the Scribe Analytics nor the
+    names of its contributors may be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL SCRIBE ANALYTICS TEAM BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</code></pre></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Scribe.html">Scribe</a></li></ul><h3>Namespaces</h3><ul><li><a href="scribe_.html">scribe</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Jan 29 2014 10:43:06 GMT-0500 (EST)
+</footer>
+
+<script> prettyPrint(); </script>
+</body>
+</html>
