@@ -61,7 +61,16 @@
             document.body.appendChild(div);
           }
         });*/
-        new Scribe(new ScribeConsoleTracker());
+        new Scribe({
+          tracker:          new ScribeConsoleTracker().tracker,
+          trackPageViews:   true,
+          trackClicks:      true,
+          trackHashChanges: true,
+          trackEngagement:  true,
+          trackLinkClicks:  true,
+          trackRedirects:   true,
+          trackSubmissions: true
+        });
     </script>
   </body>
 </html>

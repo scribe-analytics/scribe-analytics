@@ -29,8 +29,8 @@ if (typeof Scribe === 'undefined') {
     var BrowserDetect = {
       init: function () {
         this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-        this.version = this.searchVersion(navigator.userAgent) || 
-          this.searchVersion(navigator.appVersion) || 
+        this.version = this.searchVersion(navigator.userAgent) ||
+          this.searchVersion(navigator.appVersion) ||
           "an unknown version";
         this.OS = this.searchString(this.dataOS) || "an unknown OS";
       },
@@ -143,7 +143,7 @@ if (typeof Scribe === 'undefined') {
              string: navigator.userAgent,
              subString: "iPhone",
              identity: "iPhone"
-        },      
+        },
         {
           string: navigator.platform,
           subString: "Linux",
@@ -273,11 +273,11 @@ if (typeof Scribe === 'undefined') {
             if (vars[i].length > 0) {
               var pair = vars[i].split('=');
 
-              try {            
+              try {
                 var name = decodeURIComponent(pair[0]);
                 var value = (pair.length > 1) ? decodeURIComponent(pair[1]) : 'true';
 
-                pairs[name] = value; 
+                pairs[name] = value;
               } catch (e) { }
             }
           }
@@ -387,11 +387,11 @@ if (typeof Scribe === 'undefined') {
     };
 
     Util.unparseUrl = function(url) {
-      return (url.protocol || '') + 
-             '//' + 
-             (url.host || '') + 
+      return (url.protocol || '') +
+             '//' +
+             (url.host || '') +
              (url.pathname || '') +
-             Util.unparseQueryString(url.query) + 
+             Util.unparseQueryString(url.query) +
              (url.hash || '');
     };
 
@@ -418,7 +418,7 @@ if (typeof Scribe === 'undefined') {
           return true;
         } else {
           return false;
-        } 
+        }
       } else if (v1 instanceof Object) {
         if (v2 instanceof Object) {
           return leftEqualsObject(v1, v2) && leftEqualsObject(v2, v1);
@@ -518,7 +518,7 @@ if (typeof Scribe === 'undefined') {
 
           if (!scanned) {
             el.setAttribute('scribe_scanned', true);
-            try { 
+            try {
               onnew(el);
             } catch (e) {
               window.onerror(e);
@@ -570,7 +570,7 @@ if (typeof Scribe === 'undefined') {
         var prefix = tagName + id + classes;
 
         var parent = node.parentNode;
-        
+
         var nthchild = 1;
 
         for (var i = 0; i < parent.childNodes.length; i++) {
@@ -619,7 +619,7 @@ if (typeof Scribe === 'undefined') {
         'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
         'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
       };
- 
+
       options = Util.merge({
         pointerX: 0,
         pointerY: 0,
@@ -717,7 +717,7 @@ if (typeof Scribe === 'undefined') {
 
     var Env = {};
 
-    Env.getFingerprint = function() {    
+    Env.getFingerprint = function() {
       var data = [
         JSON.stringify(Env.getPluginsData()),
         JSON.stringify(Env.getLocaleData()),
@@ -726,7 +726,7 @@ if (typeof Scribe === 'undefined') {
 
       return MD5.hash(data.join(""));
     };
-    
+
     Env.getBrowserData = function() {
       var fingerprint = Env.getFingerprint();
 
@@ -762,15 +762,15 @@ if (typeof Scribe === 'undefined') {
 
     Env.getScreenData = function() {
       return ({
-        height: screen.height, 
-        width: screen.width, 
+        height: screen.height,
+        width: screen.width,
         colorDepth: screen.colorDepth
       });
     };
 
     Env.getLocaleData = function() {
       // "Mon Apr 15 2013 12:21:35 GMT-0600 (MDT)"
-      // 
+      //
       var results = new RegExp('([A-Z]+-[0-9]+) \\(([A-Z]+)\\)').exec((new Date()).toString());
 
       var gmtOffset, timezone;
@@ -878,7 +878,7 @@ if (typeof Scribe === 'undefined') {
       var f = fixup(f_);
 
       if (el.addEventListener) {
-        el.addEventListener(type, f, capture); 
+        el.addEventListener(type, f, capture);
       } else if (el.attachEvent)  {
         el.attachEvent('on' + type, f);
       }
@@ -1022,7 +1022,7 @@ if (typeof Scribe === 'undefined') {
         Events.onevent(document.body, 'click', false, function(e) {
           var target = e.target;
           var targetType = (target.type || '').toLowerCase();
-          
+
           if (target.form && (targetType === 'submit' || targetType === 'button')) {
             e.form = target.form;
             handle(e);
@@ -1045,11 +1045,20 @@ if (typeof Scribe === 'undefined') {
       this.options = Util.merge({
         bucket:           'none',
         breakoutUsers:    false,
-        breakoutVisitors: false
+        breakoutVisitors: false,
+        waitOnTracker:    false,
+        resolveGeo:       false,
+        trackPageViews:   false,
+        trackClicks:      false,
+        trackHashChanges: false,
+        trackEngagement:  false,
+        trackLinkClicks:  false,
+        trackRedirects:   false,
+        trackSubmissions: false
       }, this.options);
 
       // Always assume that Javascript is the culprit of leaving the page
-      // (we'll detect and intercept clicks on links and buttons as best 
+      // (we'll detect and intercept clicks on links and buttons as best
       // as possible and override this assumption in these cases):
       this.javascriptRedirect = true;
 
@@ -1076,6 +1085,158 @@ if (typeof Scribe === 'undefined') {
       this.context.userId      = JSON.parse(localStorage.getItem('scribe_uid')      || 'null');
       this.context.userProfile = JSON.parse(localStorage.getItem('scribe_uprofile') || 'null');
 
+      self.oldHash = document.location.hash;
+
+      var trackJump = function(hash) {
+        if (self.oldHash !== hash) { // Guard against tracking more than once
+          var id = hash.substring(1);
+
+          // If it's a real node, get it so we can capture node data:
+          var targetNode = document.getElementById(id);
+
+          var data = Util.merge({
+            url: Util.parseUrl(document.location)
+          }, targetNode ? DomUtil.getNodeDescriptor(targetNode) : {id: id});
+
+          self.track('jump', {
+            target: data,
+            source: {
+              url: Util.merge(Util.parseUrl(document.location), {
+                hash: self.oldHash // Override the hash
+              })
+            }
+          });
+
+          self.oldHash = hash;
+        }
+      };
+
+      // Try to obtain geo location if possible:
+      if(this.options.resolveGeo) {
+        Geo.geoip(function(position) {
+          self.context.geo = position;
+        });
+      }
+
+      // Track page view
+      if(this.options.trackPageView) {
+        Events.onready(function() {
+          // Track page view, but only after the DOM has loaded:
+          self.pageview();
+        });
+      }
+
+      // Track clicks
+      if(this.options.trackClicks) {
+        Events.onready(function() {
+          // Track all clicks to the document:
+          Events.onevent(document.body, 'click', true, function(e) {
+            var ancestors = DomUtil.getAncestors(e.target);
+
+            // Do not track clicks on links, these are tracked separately!
+            if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
+              self.track('click', {
+                target: DomUtil.getNodeDescriptor(e.target)
+              });
+            }
+          });
+        });
+      }
+
+      // Track hash changes:
+      if(this.options.trackHashChanges) {
+        Events.onhashchange(function(e) {
+          trackJump(e.hash);
+        });
+      }
+
+
+      // Track all engagement:
+      if(this.options.trackEngagement) {
+        Events.onengage(function(start, end) {
+          self.track('engage', {
+            target:   DomUtil.getNodeDescriptor(start.target),
+            duration: end.timeStamp - start.timeStamp
+          });
+        });
+      }
+
+      // Track all clicks on links:
+      if(this.options.trackLinkClicks) {
+        DomUtil.monitorElements('a', function(el) {
+          Events.onevent(el, 'click', true, function(e) {
+            //return if this click it created with createEvent and not by a real click
+            if(!e.isTrusted) return;
+
+            var target = e.target;
+
+            // TODO: Make sure the link is actually to a page.
+            // It's a click, not a Javascript redirect:
+            self.javascriptRedirect = false;
+            setTimeout(function(){self.javascriptRedirect = true;}, 500);
+
+            var parsedUrl = Util.parseUrl(el.href);
+            var value = {target: Util.merge({url: parsedUrl}, DomUtil.getNodeDescriptor(target))};
+
+            if (Util.isSamePage(parsedUrl, document.location.href)) {
+              // User is jumping around the same page. Track here in case the
+              // client prevents the default action and the hash doesn't change
+              // (otherwise it would be tracked by onhashchange):
+              self.oldHash = undefined;
+
+              trackJump(document.location.hash);
+            } else if (parsedUrl.hostname === document.location.hostname) {
+              // We are linking to a page on the same site. There's no need to send
+              // the event now, we can safely send it later:
+              self.trackLater('click', value);
+            } else {
+              if(this.options.waitOnTracker) e.preventDefault();
+
+              // We are linking to a page that is not on this site. So we first
+              // wait to send the event before simulating a different click
+              // on the link. This ensures we don't lose the event if the user
+              // does not return to this site ever again.
+              self.track('click',
+                value,
+                function() {
+                  // It's a click, not a Javascript redirect:
+                  self.javascriptRedirect = false;
+
+                  // Simulate a click to the original element if we were waiting on the tracker:
+                  if(this.options.waitOnTracker) DomUtil.simulateMouseEvent(target, 'click');
+                }
+              );
+            }
+          });
+        });
+      }
+
+      // Track JavaScript-based redirects, which can occur without warning:
+      if(this.options.trackRedirects) {
+        Events.onexit(function(e) {
+          if (self.javascriptRedirect) {
+            self.trackLater('redirect');
+          }
+        });
+      }
+
+      // Track form submissions:
+      if(this.options.trackSubmissions) {
+        Events.onsubmit(function(e) {
+          if (e.form) {
+            if (!e.form.formId) {
+              e.form.formId = Util.genGuid();
+            }
+
+            self.trackLater('formsubmit', {
+              form: Util.merge({formId: e.form.formId}, DomUtil.getFormData(e.form))
+            });
+          }
+        });
+      }
+      // Track form abandonments:
+
+
       // Load and send any pending events:
       this._loadOutbox();
       this._sendOutbox();
@@ -1091,7 +1252,7 @@ if (typeof Scribe === 'undefined') {
      */
     Scribe.prototype.getPath = function(type) {
       var now = new Date();
-      var rootNode =  this.context.userId ? (this.options.breakoutUsers ? '/users/' + this.context.userId + '/' : '/users/') : 
+      var rootNode =  this.context.userId ? (this.options.breakoutUsers ? '/users/' + this.context.userId + '/' : '/users/') :
                      (this.options.breakoutVisitors ? '/visitors/' + this.context.visitorId + '/' : '/visitors/');
       var dateNode;
 
@@ -1103,7 +1264,7 @@ if (typeof Scribe === 'undefined') {
         dateNode = now.getUTCFullYear() + '/';
       } else {
         dateNode = '';
-      } 
+      }
 
       var targetNode = type + '/';
 
@@ -1173,11 +1334,11 @@ if (typeof Scribe === 'undefined') {
 
       localStorage.setItem('scribe_uid',      JSON.stringify(userId));
       localStorage.setItem('scribe_uprofile', JSON.stringify(props || {}));
-      
+
       this.context = Util.merge(context || {}, this.context);
 
       this.tracker({
-        path:     this.getPath('profile'), 
+        path:     this.getPath('profile'),
         value:    this._createEvent(undefined, props),
         op:       'replace',
         success:  success,
@@ -1187,7 +1348,7 @@ if (typeof Scribe === 'undefined') {
 
     /**
      * A utility function to create an event. Adds timestamp, stores the name
-     * of the event and contextual data, and generates an idiomatic, trimmed 
+     * of the event and contextual data, and generates an idiomatic, trimmed
      * JSON objects that contains all event details.
      */
     Scribe.prototype._createEvent = function(name, props) {
@@ -1212,7 +1373,7 @@ if (typeof Scribe === 'undefined') {
      */
     Scribe.prototype.track = function(name, props, success, failure) {
       this.tracker({
-        path:    this.getPath('events'), 
+        path:    this.getPath('events'),
         value:   this._createEvent(name, props),
         op:      'append',
         success: success,
@@ -1224,7 +1385,7 @@ if (typeof Scribe === 'undefined') {
      * Tracks an event later. The event will only be tracked if the user visits
      * some page on the same domain that has Scribe Analytics installed.
      *
-     * This function is mainly useful when the user is leaving the page and 
+     * This function is mainly useful when the user is leaving the page and
      * there is not enough time to capture some user behavior.
      *
      * @memberof Scribe
@@ -1235,7 +1396,7 @@ if (typeof Scribe === 'undefined') {
      */
     Scribe.prototype.trackLater = function(name, props) {
       this.outbox.push({
-        path:    this.getPath('events'), 
+        path:    this.getPath('events'),
         value:   this._createEvent(name, props),
         op:      'append'
       });
@@ -1259,7 +1420,7 @@ if (typeof Scribe === 'undefined') {
       this.context = Util.merge(context || {}, this.context);
 
       this.tracker({
-        path:     this.getPath('groups'), 
+        path:     this.getPath('groups'),
         value:    this._createEvent(undefined, props),
         op:       'replace',
         success:  success,
