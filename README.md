@@ -179,7 +179,7 @@ use case is debugging or exploring the capabilities of Scribe Analytics.
 <script type="text/javascript" src="scribe-console.js"></script>
 ...
 var scribe = new Scribe({
-  tracker:     new ScribeConsoleTracker().tracker,
+  tracker:     new ScribeConsoleTracker(),
   trackClicks: true
 });
 ```
@@ -197,7 +197,7 @@ var scribe =  new Scribe({
                   apiKey:           apiKey,
                   analyticsService: analyticsServiceUrl,
                   rootPath:         rootPath
-                }).tracker,
+                }),
                 trackPageViews: true
               );
 ```
