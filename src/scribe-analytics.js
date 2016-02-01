@@ -14,7 +14,7 @@ if (typeof Scribe === 'undefined') {
     options = options || {};
 
     this.options    = options;
-    this.tracker    = options.tracker;
+    this.trackerInstance    = options.tracker;
 
     this.initialize();
   };
@@ -1309,7 +1309,7 @@ if (typeof Scribe === 'undefined') {
         }
 
         try {
-          this.tracker(message);
+          this.trackerInstance.tracker(message);
         } catch (e) {
           // Don't let one bad apple spoil the batch.
           window.onerror && window.onerror(e);
@@ -1337,7 +1337,7 @@ if (typeof Scribe === 'undefined') {
 
       this.context = Util.merge(context || {}, this.context);
 
-      this.tracker({
+      this.trackerInstance.tracker({
         path:     this.getPath('profile'),
         value:    this._createEvent(undefined, props),
         op:       'replace',
@@ -1372,7 +1372,7 @@ if (typeof Scribe === 'undefined') {
      *
      */
     Scribe.prototype.track = function(name, props, success, failure) {
-      this.tracker({
+      this.trackerInstance.tracker({
         path:    this.getPath('events'),
         value:   this._createEvent(name, props),
         op:      'append',
@@ -1419,7 +1419,7 @@ if (typeof Scribe === 'undefined') {
 
       this.context = Util.merge(context || {}, this.context);
 
-      this.tracker({
+      this.trackerInstance.tracker({
         path:     this.getPath('groups'),
         value:    this._createEvent(undefined, props),
         op:       'replace',
