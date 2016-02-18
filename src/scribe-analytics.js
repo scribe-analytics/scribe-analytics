@@ -184,6 +184,7 @@ if (typeof Scribe === 'undefined') {
           return storage.setItem(key, value);
         } catch(domException) {
           if (domException.name === 'QuotaExceededError' ||
+              domException.name === 'SecurityError' ||
               domException.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
             return null
           }
