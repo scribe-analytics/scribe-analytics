@@ -174,6 +174,32 @@ if (typeof Scribe === 'undefined') {
 
     var Util = {};
 
+    // Needed to handle private browsing in safari and quota exceded
+    Util.store = {
+      getItem: function(storage, key) {
+        return storage.getItem(key);
+      },
+      setItem: function(storage, key, value) {
+        try {
+          return storage.setItem(key, value);
+        } catch(domException) {
+          if (domException.name === 'QuotaExceededError' ||
+              domException.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+            return null
+          }
+        }
+      },
+      session: {
+        getItem: function(key) {Util.store.getItem(sessionStorage, key)},
+        setItem: function(key, value) {Util.store.setItem(sessionStorage, key, value)}
+      },
+      local: {
+        getItem: function(key) {Util.store.getItem(localStorage, key)},
+        setItem: function(key, value) {Util.store.setItem(localStorage, key, value)}
+      }
+    }
+
+
     Util.copyFields = function(source, target) {
       var createDelegate = function(source, value) {
         return function() {
@@ -1067,23 +1093,23 @@ if (typeof Scribe === 'undefined') {
       this.context.fingerprint = Env.getFingerprint();
 
       this.context.sessionId = (function() {
-        var sessionId = sessionStorage.getItem('scribe_sid') || Util.genGuid();
+        var sessionId = Util.store.session.getItem('scribe_sid') || Util.genGuid();
 
-        sessionStorage.setItem('scribe_sid', sessionId);
+        Util.store.session.setItem('scribe_sid', sessionId);
 
         return sessionId;
       })();
 
       this.context.visitorId = (function() {
-        var visitorId = localStorage.getItem('scribe_vid') || Util.genGuid();
+        var visitorId = Util.store.local.getItem('scribe_vid') || Util.genGuid();
 
-        localStorage.setItem('scribe_vid', visitorId);
+        Util.store.local.setItem('scribe_vid', visitorId);
 
         return visitorId;
       })();
 
-      this.context.userId      = JSON.parse(localStorage.getItem('scribe_uid')      || 'null');
-      this.context.userProfile = JSON.parse(localStorage.getItem('scribe_uprofile') || 'null');
+      this.context.userId      = JSON.parse(Util.store.local.getItem('scribe_uid')      || 'null');
+      this.context.userProfile = JSON.parse(Util.store.local.getItem('scribe_uprofile') || 'null');
 
       self.oldHash = document.location.hash;
 
@@ -1272,11 +1298,11 @@ if (typeof Scribe === 'undefined') {
     };
 
     Scribe.prototype._saveOutbox = function() {
-      localStorage.setItem('scribe_outbox', JSON.stringify(this.outbox));
+      Util.store.local.setItem('scribe_outbox', JSON.stringify(this.outbox));
     };
 
     Scribe.prototype._loadOutbox = function() {
-      this.outbox = JSON.parse(localStorage.getItem('scribe_outbox') || '[]');
+      this.outbox = JSON.parse(Util.store.local.getItem('scribe_outbox') || '[]');
     };
 
     Scribe.prototype._sendOutbox = function() {
@@ -1332,8 +1358,8 @@ if (typeof Scribe === 'undefined') {
       this.context.userId       = userId;
       this.context.userProfile  = props;
 
-      localStorage.setItem('scribe_uid',      JSON.stringify(userId));
-      localStorage.setItem('scribe_uprofile', JSON.stringify(props || {}));
+      Util.store.local.setItem('scribe_uid',      JSON.stringify(userId));
+      Util.store.local.setItem('scribe_uprofile', JSON.stringify(props || {}));
 
       this.context = Util.merge(context || {}, this.context);
 
