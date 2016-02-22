@@ -191,12 +191,12 @@ if (typeof Scribe === 'undefined') {
         }
       },
       session: {
-        getItem: function(key) {Util.store.getItem(sessionStorage, key)},
-        setItem: function(key, value) {Util.store.setItem(sessionStorage, key, value)}
+        getItem: function(key) {return Util.store.getItem(sessionStorage, key)},
+        setItem: function(key, value) {return Util.store.setItem(sessionStorage, key, value)}
       },
       local: {
-        getItem: function(key) {Util.store.getItem(localStorage, key)},
-        setItem: function(key, value) {Util.store.setItem(localStorage, key, value)}
+        getItem: function(key) {return Util.store.getItem(localStorage, key)},
+        setItem: function(key, value) {return Util.store.setItem(localStorage, key, value)}
       }
     }
 
