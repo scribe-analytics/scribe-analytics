@@ -186,17 +186,17 @@ if (typeof Scribe === 'undefined') {
           if (domException.name === 'QuotaExceededError' ||
               domException.name === 'SecurityError' ||
               domException.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-            return null
+            return undefined;
           }
         }
       },
       session: {
-        getItem: function(key) {return Util.store.getItem(sessionStorage, key)},
-        setItem: function(key, value) {return Util.store.setItem(sessionStorage, key, value)}
+        getItem: function(key) {return Util.store.getItem(sessionStorage, key);},
+        setItem: function(key, value) {return Util.store.setItem(sessionStorage, key, value);}
       },
       local: {
-        getItem: function(key) {return Util.store.getItem(localStorage, key)},
-        setItem: function(key, value) {return Util.store.setItem(localStorage, key, value)}
+        getItem: function(key) {return Util.store.getItem(localStorage, key);},
+        setItem: function(key, value) {return Util.store.setItem(localStorage, key, value);}
       }
     }
 
