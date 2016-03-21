@@ -561,7 +561,8 @@ if (typeof Scribe === 'undefined') {
 
       while (node != document.body) {
         var id = node.id;
-        var classes = node.className.trim().split(/\s+/).join(".");
+        var classes = typeof node.className === 'string' ?
+          node.className.trim().split(/\s+/).join(".") : '';
         var tagName = node.nodeName.toLowerCase();
 
         if (id && id !== "") id = '#' + id;
