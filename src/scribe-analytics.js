@@ -1164,6 +1164,7 @@ if (typeof Scribe === 'undefined') {
 
       // Track all clicks on links:
       if(this.options.trackLinkClicks) {
+        var that = this;
         DomUtil.monitorElements('a', function(el) {
           Events.onevent(el, 'click', true, function(e) {
             //return if this click it created with createEvent and not by a real click
@@ -1191,7 +1192,7 @@ if (typeof Scribe === 'undefined') {
               // the event now, we can safely send it later:
               self.trackLater('click', value);
             } else {
-              if(this.options.waitOnTracker) e.preventDefault();
+              if(that.options.waitOnTracker) e.preventDefault();
 
               // We are linking to a page that is not on this site. So we first
               // wait to send the event before simulating a different click
@@ -1204,7 +1205,7 @@ if (typeof Scribe === 'undefined') {
                   self.javascriptRedirect = false;
 
                   // Simulate a click to the original element if we were waiting on the tracker:
-                  if(this.options.waitOnTracker) DomUtil.simulateMouseEvent(target, 'click');
+                  if(that.options.waitOnTracker) DomUtil.simulateMouseEvent(target, 'click');
                 }
               );
             }
